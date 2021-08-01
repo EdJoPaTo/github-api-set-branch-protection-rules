@@ -1,0 +1,36 @@
+{
+	"private": true,
+	"license": "MIT",
+	"repository": "EdJoPaTo/github-api-set-branch-protection-rules",
+	"author": {
+		"name": "EdJoPaTo",
+		"email": "github-api-set-branch-protection-rules-npm-package@edjopato.de",
+		"url": "https://edjopato.de"
+	},
+	"scripts": {
+		"build": "del-cli dist && tsc",
+		"start": "node --loader ts-node/esm source/index.ts",
+		"test": "tsc --sourceMap && xo"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=16"
+	},
+	"dependencies": {
+		"@octokit/core": "^3.5.1",
+		"array-filter-unique": "^2.2.0"
+	},
+	"devDependencies": {
+		"@sindresorhus/tsconfig": "^1.0.1",
+		"@types/node": "^16.0.0",
+		"del-cli": "^4.0.0",
+		"ts-node": "^10.0.0",
+		"typescript": "^4.2.3",
+		"xo": "^0.42.0"
+	},
+	"xo": {
+		"rules": {
+			"unicorn/prefer-node-protocol": "off"
+		}
+	}
+}
