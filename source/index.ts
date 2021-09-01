@@ -27,10 +27,15 @@ async function getRepos() {
 		.flatMap(o => o.data)
 		.filter(o => !o.archived);
 
-	const notMain = repos
+	console.log('not main', repos
 		.filter(o => o.default_branch !== 'main')
-		.map(o => `${o.default_branch!} ${o.html_url}`);
-	console.log('not main', notMain);
+		.map(o => `${o.default_branch!} ${o.html_url}`),
+	);
+
+	console.log('has projects', repos
+		.filter(o => o.has_projects)
+		.map(o => `${o.html_url}`),
+	);
 
 	const relevant = repos
 		.filter(o => o.default_branch === 'main');
@@ -76,7 +81,17 @@ async function doRepo(owner: string, repo: string) {
 	console.log('relevant checks', relevantChecks);
 	console.log('ignored checks', allChecks.filter(o => !WANTED.has(o)).sort());
 
-	const response = await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
+	console.log('update repo', (await octokit.request('PATCH /repos/{owner}/{repo}', {
+		owner,
+		repo,
+		allow_auto_merge: true,
+		allow_merge_commit: false,
+		allow_rebase_merge: false,
+		allow_squash_merge: true,
+		delete_branch_on_merge: true,
+		has_wiki: false,
+	})).status);
+	console.log('protection rules', (await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
 		owner,
 		repo,
 		branch: 'main',
@@ -84,10 +99,12 @@ async function doRepo(owner: string, repo: string) {
 			strict: false,
 			contexts: relevantChecks,
 		},
+		allow_deletions: false,
+		allow_force_pushes: false,
 		enforce_admins: false,
+		required_conversation_resolution: true,
+		required_linear_history: true,
 		required_pull_request_reviews: null,
 		restrictions: null,
-		required_conversation_resolution: true,
-	});
-	console.log('protection rules', response.status);
+	})).status);
 }
