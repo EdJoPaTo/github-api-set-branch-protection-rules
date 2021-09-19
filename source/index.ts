@@ -49,7 +49,7 @@ async function doit() {
 
 	for (const repo of repos) {
 		// eslint-disable-next-line no-await-in-loop
-		await doRepo(repo.owner!.login, repo.name);
+		await doRepo(repo.owner.login, repo.name);
 	}
 }
 
