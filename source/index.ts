@@ -36,9 +36,7 @@ async function getRepos() {
 		.map(o => `${o.html_url}`),
 	);
 
-	const relevant = repos
-		.filter(o => o.default_branch === 'main');
-	return relevant;
+	return repos;
 }
 
 void doit();
@@ -48,7 +46,7 @@ async function doit() {
 
 	for (const repo of repos) {
 		// eslint-disable-next-line no-await-in-loop
-		await doRepo(repo.owner!.login, repo.name, repo.private);
+		await doRepo(repo.owner!.login, repo.name, repo.private, repo.default_branch);
 	}
 }
 
@@ -64,14 +62,14 @@ const WANTED = new Set([
 	'Rustfmt',
 ]);
 
-async function doRepo(owner: string, repo: string, privateRepo: boolean) {
+async function doRepo(owner: string, repo: string, privateRepo: boolean, defaultBranch: string) {
 	console.log();
 	console.log('do repo', owner, repo);
 
 	const allChecks = (await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
 		owner,
 		repo,
-		ref: 'main',
+		ref: defaultBranch,
 	})).data.check_runs
 		.map(o => o.name)
 		.filter(arrayFilterUnique());
@@ -98,7 +96,7 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean) {
 	console.log('protection rules', (await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
 		owner,
 		repo,
-		branch: 'main',
+		branch: defaultBranch,
 		required_status_checks: {
 			strict: true,
 			contexts: relevantChecks,
