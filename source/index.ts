@@ -96,7 +96,7 @@ async function doRepo(owner: string, repo: string) {
 		repo,
 		branch: 'main',
 		required_status_checks: {
-			strict: false,
+			strict: true,
 			contexts: relevantChecks,
 		},
 		allow_deletions: false,
