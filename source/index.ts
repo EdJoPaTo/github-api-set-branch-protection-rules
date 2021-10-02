@@ -5,31 +5,30 @@ import arrayFilterUnique from 'array-filter-unique';
 const octokit = new Octokit({auth: 'personal-access-token123'});
 
 async function getRepos() {
+	const default_search_options = {
+		// eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style, @typescript-eslint/prefer-as-const
+		sort: 'updated' as 'updated',
+		q: [
+			'fork:true',
+			'archived:false',
+			'repo:grammyjs/i18n',
+			'repo:grammyjs/stateless-question',
+			'user:EdJoPaTo',
+			'user:HAWHHCalendarbot',
+		].join(' '),
+		per_page: 100,
+	};
 	const repos = [
-		await octokit.request('GET /orgs/{org}/repos', {
-			org: 'HAWHHCalendarbot',
-			type: 'public',
-			per_page: 100,
-		}),
-		await octokit.request('GET /users/{username}/repos', {
-			username: 'EdJoPaTo',
-			type: 'owner',
-			per_page: 100,
-			page: 1,
-		}),
-		await octokit.request('GET /users/{username}/repos', {
-			username: 'EdJoPaTo',
-			type: 'owner',
-			per_page: 100,
-			page: 2,
-		}),
+		await octokit.request('GET /search/repositories', {...default_search_options, page: 1}),
+		await octokit.request('GET /search/repositories', {...default_search_options, page: 2}),
 	]
-		.flatMap(o => o.data)
-		.filter(o => !o.archived);
+		.flatMap(o => o.data.items);
+
+	console.log('total repos', repos.length, '/ 200 due to 2 pages');
 
 	console.log('not main', repos
 		.filter(o => o.default_branch !== 'main')
-		.map(o => `${o.default_branch!} ${o.html_url}`),
+		.map(o => `${o.default_branch} ${o.html_url}`),
 	);
 
 	console.log('has projects', repos
@@ -49,7 +48,7 @@ async function doit() {
 
 	for (const repo of repos) {
 		// eslint-disable-next-line no-await-in-loop
-		await doRepo(repo.owner.login, repo.name);
+		await doRepo(repo.owner!.login, repo.name, repo.private);
 	}
 }
 
@@ -65,7 +64,7 @@ const WANTED = new Set([
 	'Rustfmt',
 ]);
 
-async function doRepo(owner: string, repo: string) {
+async function doRepo(owner: string, repo: string, privateRepo: boolean) {
 	console.log();
 	console.log('do repo', owner, repo);
 
@@ -91,6 +90,11 @@ async function doRepo(owner: string, repo: string) {
 		delete_branch_on_merge: true,
 		has_wiki: false,
 	})).status);
+
+	if (privateRepo) {
+		return;
+	}
+
 	console.log('protection rules', (await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
 		owner,
 		repo,
