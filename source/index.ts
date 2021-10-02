@@ -100,7 +100,7 @@ async function doRepo(owner: string, repo: string) {
 			contexts: relevantChecks,
 		},
 		allow_deletions: false,
-		allow_force_pushes: false,
+		allow_force_pushes: true,
 		enforce_admins: false,
 		required_conversation_resolution: true,
 		required_linear_history: true,
