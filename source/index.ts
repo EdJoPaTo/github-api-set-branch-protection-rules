@@ -66,18 +66,6 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 	console.log();
 	console.log('do repo', owner, repo);
 
-	const allChecks = (await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
-		owner,
-		repo,
-		ref: defaultBranch,
-	})).data.check_runs
-		.map(o => o.name)
-		.filter(arrayFilterUnique());
-
-	const relevantChecks = allChecks.filter(o => WANTED.has(o)).sort();
-	console.log('relevant checks', relevantChecks);
-	console.log('ignored checks', allChecks.filter(o => !WANTED.has(o)).sort());
-
 	console.log('update repo', (await octokit.request('PATCH /repos/{owner}/{repo}', {
 		owner,
 		repo,
@@ -92,6 +80,18 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 	if (privateRepo) {
 		return;
 	}
+
+	const allChecks = (await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+		owner,
+		repo,
+		ref: defaultBranch,
+	})).data.check_runs
+		.map(o => o.name)
+		.filter(arrayFilterUnique());
+
+	const relevantChecks = allChecks.filter(o => WANTED.has(o)).sort();
+	console.log('relevant checks', relevantChecks);
+	console.log('ignored checks', allChecks.filter(o => !WANTED.has(o)).sort());
 
 	console.log('protection rules', (await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
 		owner,
