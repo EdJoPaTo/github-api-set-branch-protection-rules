@@ -5,9 +5,8 @@ import arrayFilterUnique from 'array-filter-unique';
 const octokit = new Octokit({auth: 'personal-access-token123'});
 
 async function getRepos() {
-	const default_search_options = {
-		// eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style, @typescript-eslint/prefer-as-const
-		sort: 'updated' as 'updated',
+	const defaultSearchOptions = {
+		sort: 'updated' as const,
 		q: [
 			'fork:true',
 			'archived:false',
@@ -19,8 +18,8 @@ async function getRepos() {
 		per_page: 100,
 	};
 	const repos = [
-		await octokit.request('GET /search/repositories', {...default_search_options, page: 1}),
-		await octokit.request('GET /search/repositories', {...default_search_options, page: 2}),
+		await octokit.request('GET /search/repositories', {...defaultSearchOptions, page: 1}),
+		await octokit.request('GET /search/repositories', {...defaultSearchOptions, page: 2}),
 	]
 		.flatMap(o => o.data.items);
 
