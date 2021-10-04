@@ -66,6 +66,12 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 	console.log();
 	console.log('do repo', owner, repo);
 
+	console.log('watch repo', (await octokit.request('PUT /repos/{owner}/{repo}/subscription', {
+		owner,
+		repo,
+		subscribed: true,
+	})).status);
+
 	console.log('update repo', (await octokit.request('PATCH /repos/{owner}/{repo}', {
 		owner,
 		repo,
