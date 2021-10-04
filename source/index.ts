@@ -43,10 +43,20 @@ async function doit() {
 	const repos = await getRepos();
 	console.log('repos', repos.length, repos.map(o => o.html_url));
 
+	let allChecks: string[] = [];
+
 	for (const repo of repos) {
 		// eslint-disable-next-line no-await-in-loop
-		await doRepo(repo.owner!.login, repo.name, repo.private, repo.default_branch);
+		const result = await doRepo(repo.owner!.login, repo.name, repo.private, repo.default_branch);
+		allChecks.push(...(result ?? []));
 	}
+
+	console.log('\n\nall done');
+	allChecks = allChecks.filter(arrayFilterUnique());
+	const unusedWantedChecks = [...WANTED].filter(o => !allChecks.includes(o)).sort();
+	const ignoredChecks = allChecks.filter(o => !WANTED.has(o)).sort();
+	console.log('unused WANTED checks', unusedWantedChecks);
+	console.log('ignored checks', ignoredChecks);
 }
 
 const WANTED = new Set([
@@ -95,8 +105,14 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 		.filter(arrayFilterUnique());
 
 	const relevantChecks = allChecks.filter(o => WANTED.has(o)).sort();
-	console.log('relevant checks', relevantChecks);
-	console.log('ignored checks', allChecks.filter(o => !WANTED.has(o)).sort());
+	if (relevantChecks.length > 0) {
+		console.log('relevant checks', relevantChecks);
+	}
+
+	const ignoredChecks = allChecks.filter(o => !WANTED.has(o)).sort();
+	if (ignoredChecks.length > 0) {
+		console.log('ignored checks', ignoredChecks);
+	}
 
 	console.log('protection rules', (await octokit.request('PUT /repos/{owner}/{repo}/branches/{branch}/protection', {
 		owner,
@@ -114,4 +130,6 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 		required_pull_request_reviews: null,
 		restrictions: null,
 	})).status);
+
+	return allChecks;
 }
