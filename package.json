@@ -30,8 +30,7 @@
 	},
 	"xo": {
 		"rules": {
-			"@typescript-eslint/naming-convention": "off",
-			"unicorn/prefer-node-protocol": "off"
+			"@typescript-eslint/naming-convention": "off"
 		}
 	}
 }
