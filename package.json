@@ -26,11 +26,12 @@
 		"del-cli": "^4.0.0",
 		"ts-node": "^10.0.0",
 		"typescript": "^4.2.3",
-		"xo": "^0.46.3"
+		"xo": "^0.47.0"
 	},
 	"xo": {
 		"rules": {
-			"@typescript-eslint/naming-convention": "off"
+			"@typescript-eslint/naming-convention": "off",
+			"unicorn/no-await-expression-member": "off"
 		}
 	}
 }
