@@ -2,7 +2,8 @@ import {Octokit} from '@octokit/core';
 import arrayFilterUnique from 'array-filter-unique';
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
-const octokit = new Octokit({auth: 'personal-access-token123'});
+// Then use `export GITHUB_PAT='ghp_…'`
+const octokit = new Octokit({auth: process.env['GITHUB_PAT']});
 
 async function getRepos() {
 	const defaultSearchOptions = {
