@@ -30,6 +30,7 @@
 	"xo": {
 		"rules": {
 			"@typescript-eslint/naming-convention": "off",
+			"no-await-in-loop": "off",
 			"unicorn/no-await-expression-member": "off"
 		}
 	}

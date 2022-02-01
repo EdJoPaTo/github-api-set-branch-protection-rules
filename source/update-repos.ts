@@ -1,3 +1,4 @@
+import process from 'node:process';
 import {Octokit} from '@octokit/core';
 import arrayFilterUnique from 'array-filter-unique';
 
@@ -47,7 +48,6 @@ async function doit() {
 	let allChecks: string[] = [];
 
 	for (const repo of repos) {
-		// eslint-disable-next-line no-await-in-loop
 		const result = await doRepo(repo.owner!.login, repo.name, repo.private, repo.default_branch);
 		allChecks.push(...(result ?? []));
 	}
