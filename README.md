@@ -1,3 +1,4 @@
-# github-api-set-branch-protection-rules
+# github-api-do-stuff
 
-Set branch protection rules for all my repos
+Do stuff with the GitHub API.
+For example all my basic settings of repos are automated this way.
