@@ -8,7 +8,8 @@
 		"url": "https://edjopato.de"
 	},
 	"scripts": {
-		"start": "tsc && node --enable-source-maps dist/update-repos.js",
+		"dependabot-notifications": "tsc && node --enable-source-maps dist/dependabot-notifications.js",
+		"update-repos": "tsc && node --enable-source-maps dist/update-repos.js",
 		"test": "tsc && xo"
 	},
 	"type": "module",
