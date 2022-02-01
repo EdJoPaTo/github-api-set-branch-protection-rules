@@ -8,9 +8,8 @@
 		"url": "https://edjopato.de"
 	},
 	"scripts": {
-		"build": "del-cli dist && tsc",
-		"start": "tsc && node --enable-source-maps dist/index.js",
-		"test": "tsc --sourceMap && xo"
+		"start": "tsc && node --enable-source-maps dist/update-repos.js",
+		"test": "tsc && xo"
 	},
 	"type": "module",
 	"engines": {
