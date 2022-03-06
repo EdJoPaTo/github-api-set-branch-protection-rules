@@ -58,7 +58,7 @@ function getLocalRepos() {
 		}
 	}
 
-	console.log('other repos:', others.length, others.sort())
+	console.log('other repos:', others.length, others.sort());
 	return list;
 }
 
