@@ -65,6 +65,7 @@ const WANTED = new Set([
 	'Node.js 12',
 	'Node.js 14',
 	'Node.js 16',
+	'Node.js 18',
 	'Release aarch64-apple-darwin',
 	'Release aarch64-unknown-linux-gnu',
 	'Release x86_64-pc-windows-msvc',
