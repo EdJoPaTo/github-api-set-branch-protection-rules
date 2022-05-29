@@ -61,6 +61,7 @@ async function doit() {
 }
 
 const WANTED = new Set([
+	'build', // Probably PlatformIO
 	'docker',
 	'Node.js 12',
 	'Node.js 14',
@@ -71,6 +72,7 @@ const WANTED = new Set([
 	'Release x86_64-pc-windows-msvc',
 	'Release x86_64-unknown-linux-gnu',
 	'Rustfmt',
+	'test', // Probably Deno
 ]);
 
 async function doRepo(owner: string, repo: string, privateRepo: boolean, defaultBranch: string) {
