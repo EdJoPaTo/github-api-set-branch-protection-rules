@@ -1,6 +1,6 @@
 import process from 'node:process';
+import {arrayFilterUnique} from 'array-filter-unique';
 import {Octokit} from '@octokit/core';
-import arrayFilterUnique from 'array-filter-unique';
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`

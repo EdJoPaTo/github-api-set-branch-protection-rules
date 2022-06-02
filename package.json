@@ -19,7 +19,7 @@
 	},
 	"dependencies": {
 		"@octokit/core": "^3.5.1",
-		"array-filter-unique": "^2.2.0"
+		"array-filter-unique": "^3.0.0"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^2.0.0",
