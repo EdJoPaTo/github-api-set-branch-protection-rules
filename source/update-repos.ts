@@ -63,7 +63,6 @@ async function doit() {
 const WANTED = new Set([
 	'build', // Probably PlatformIO
 	'docker',
-	'Node.js 12',
 	'Node.js 14',
 	'Node.js 16',
 	'Node.js 18',
