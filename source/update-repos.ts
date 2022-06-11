@@ -54,22 +54,23 @@ async function doit() {
 
 	console.log('\n\nall done');
 	allChecks = allChecks.filter(arrayFilterUnique());
-	const unusedWantedChecks = [...WANTED].filter(o => !allChecks.includes(o)).sort();
-	const ignoredChecks = allChecks.filter(o => !WANTED.has(o)).sort();
+	const unusedWantedChecks = [...WANTED_STATICS].filter(o => !allChecks.includes(o)).sort();
+	const wantedChecks = allChecks.filter(o => isCheckWanted(o)).sort();
+	const ignoredChecks = allChecks.filter(o => !isCheckWanted(o)).sort();
 	console.log('unused WANTED checks', unusedWantedChecks);
+	console.log('wanted checks', wantedChecks);
 	console.log('ignored checks', ignoredChecks);
 }
 
-const WANTED = new Set([
+function isCheckWanted(name: string): boolean {
+	return WANTED_STATICS.has(name)
+		|| name.startsWith('Release ')
+		|| name.startsWith('Node.js');
+}
+
+const WANTED_STATICS = new Set([
 	'build', // Probably PlatformIO
 	'docker',
-	'Node.js 14',
-	'Node.js 16',
-	'Node.js 18',
-	'Release aarch64-apple-darwin',
-	'Release aarch64-unknown-linux-gnu',
-	'Release x86_64-pc-windows-msvc',
-	'Release x86_64-unknown-linux-gnu',
 	'Rustfmt',
 	'test', // Probably Deno
 ]);
@@ -107,12 +108,12 @@ async function doRepo(owner: string, repo: string, privateRepo: boolean, default
 		.map(o => o.name)
 		.filter(arrayFilterUnique());
 
-	const relevantChecks = allChecks.filter(o => WANTED.has(o)).sort();
+	const relevantChecks = allChecks.filter(o => isCheckWanted(o)).sort();
 	if (relevantChecks.length > 0) {
 		console.log('relevant checks', relevantChecks);
 	}
 
-	const ignoredChecks = allChecks.filter(o => !WANTED.has(o)).sort();
+	const ignoredChecks = allChecks.filter(o => !isCheckWanted(o)).sort();
 	if (ignoredChecks.length > 0) {
 		console.log('ignored checks', ignoredChecks);
 	}
