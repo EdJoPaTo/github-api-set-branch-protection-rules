@@ -18,7 +18,7 @@
 		"node": ">=16"
 	},
 	"dependencies": {
-		"@octokit/core": "^3.5.1",
+		"@octokit/core": "^4.0.4",
 		"array-filter-unique": "^3.0.0"
 	},
 	"devDependencies": {
