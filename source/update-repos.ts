@@ -12,7 +12,6 @@ async function getRepos() {
 		q: [
 			'fork:true',
 			'archived:false',
-			'repo:grammyjs/i18n',
 			'repo:grammyjs/stateless-question',
 			'user:EdJoPaTo',
 			'user:HAWHHCalendarbot',
