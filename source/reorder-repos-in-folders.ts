@@ -12,7 +12,11 @@ if (!GITHUB_PAT) {
 
 const octokit = new Octokit({auth: GITHUB_PAT});
 
-const EXPECTED_OWNERS = new Set(['EdJoPaTo', 'HAWHHCalendarBot', 'grammyjs', 'icarus-consulting']);
+const EXPECTED_OWNERS = new Set([
+	'EdJoPaTo',
+	'HAWHHCalendarBot',
+	'grammyjs',
+]);
 
 interface RepoInfo {
 	readonly path: string;
@@ -30,7 +34,7 @@ function getLocalRepos() {
 		const path = folderLine.replace(/\/.git\/?$/, '');
 		const gitOutput = execSync(`git -C ${path} remote --verbose`).toString();
 
-		const remotes: Record<string, {user: string;repo: string}> = {};
+		const remotes: Record<string, {user: string; repo: string}> = {};
 
 		for (const remoteLine of gitOutput.split('\n').filter(o => o.trim() !== '')) {
 			const remoteMatch = /(\w+)\t(\S+)/.exec(remoteLine);
@@ -81,7 +85,9 @@ async function doit() {
 
 		const {data} = response;
 
-		const ownerFolder = data.owner && EXPECTED_OWNERS.has(data.owner.login) ? data.owner.login : 'other';
+		const ownerFolder = (data.owner && EXPECTED_OWNERS.has(data.owner.login))
+			? data.owner.login
+			: 'other';
 
 		let permissionFolder = '';
 		if (data.is_template) {
