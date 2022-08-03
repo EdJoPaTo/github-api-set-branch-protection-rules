@@ -4,7 +4,12 @@ import {Octokit} from '@octokit/core';
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`
-const octokit = new Octokit({auth: process.env['GITHUB_PAT']});
+const {GITHUB_PAT} = process.env;
+if (!GITHUB_PAT) {
+	throw new Error('GITHUB_PAT is not defined');
+}
+
+const octokit = new Octokit({auth: GITHUB_PAT});
 
 async function getRepos() {
 	const defaultSearchOptions = {
