@@ -27,7 +27,7 @@ function getLocalRepos() {
 	const others: string[] = [];
 
 	for (const folderLine of fdOutput.split('\n').filter(o => o.trim() !== '')) {
-		const path = folderLine.slice(0, 0 - '/.git'.length);
+		const path = folderLine.replace(/\/.git\/?$/, '');
 		const gitOutput = execSync(`git -C ${path} remote --verbose`).toString();
 
 		const remotes: Record<string, {user: string;repo: string}> = {};
