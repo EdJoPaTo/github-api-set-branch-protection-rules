@@ -18,11 +18,11 @@ const EXPECTED_OWNERS = new Set([
 	'grammyjs',
 ]);
 
-interface RepoInfo {
+type RepoInfo = {
 	readonly path: string;
 	readonly user: string;
 	readonly repo: string;
-}
+};
 
 function getLocalRepos() {
 	const fdOutput = execSync('fd --type=directory --hidden "^\\.git$" ~/git').toString();
