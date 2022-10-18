@@ -8,9 +8,9 @@
 		"url": "https://edjopato.de"
 	},
 	"scripts": {
-		"reorder-repos-in-folders": "tsc && node --enable-source-maps dist/reorder-repos-in-folders.js",
-		"update-repos": "tsc && node --enable-source-maps dist/update-repos.js",
-		"test": "tsc && xo"
+		"reorder-repos-in-folders": "tsc --sourceMap && node --enable-source-maps dist/reorder-repos-in-folders.js",
+		"update-repos": "tsc --sourceMap && node --enable-source-maps dist/update-repos.js",
+		"test": "tsc --sourceMap && xo"
 	},
 	"type": "module",
 	"engines": {
