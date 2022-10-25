@@ -4,7 +4,7 @@ import {Octokit} from '@octokit/core';
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`
-const {GITHUB_PAT} = process.env;
+const GITHUB_PAT = process.env['GITHUB_PAT']!;
 if (!GITHUB_PAT) {
 	throw new Error('GITHUB_PAT is not defined');
 }
@@ -12,7 +12,7 @@ if (!GITHUB_PAT) {
 const octokit = new Octokit({auth: GITHUB_PAT});
 
 async function getRepos() {
-	const defaultSearchOptions = {
+	const opt = {
 		sort: 'updated' as const,
 		q: [
 			'fork:true',
@@ -24,8 +24,8 @@ async function getRepos() {
 		per_page: 100,
 	};
 	const repos = [
-		await octokit.request('GET /search/repositories', {...defaultSearchOptions, page: 1}),
-		await octokit.request('GET /search/repositories', {...defaultSearchOptions, page: 2}),
+		await octokit.request('GET /search/repositories', {...opt, page: 1}),
+		await octokit.request('GET /search/repositories', {...opt, page: 2}),
 	]
 		.flatMap(o => o.data.items);
 
@@ -67,7 +67,9 @@ async function doit() {
 
 	console.log('\n\nall done');
 	allChecks = allChecks.filter(arrayFilterUnique());
-	const unusedWantedChecks = [...WANTED_STATICS].filter(o => !allChecks.includes(o)).sort();
+	const unusedWantedChecks = [...WANTED_STATICS].filter(o =>
+		!allChecks.includes(o),
+	).sort();
 	const wantedChecks = allChecks.filter(o => isCheckWanted(o)).sort();
 	const ignoredChecks = allChecks.filter(o => !isCheckWanted(o)).sort();
 	console.log('unused WANTED checks', unusedWantedChecks);

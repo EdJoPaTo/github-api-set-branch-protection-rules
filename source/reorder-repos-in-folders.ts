@@ -5,9 +5,14 @@ import {Octokit} from '@octokit/core';
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`
-const {GITHUB_PAT} = process.env;
+const GITHUB_PAT = process.env['GITHUB_PAT']!;
 if (!GITHUB_PAT) {
 	throw new Error('GITHUB_PAT is not defined');
+}
+
+const HOME = process.env['HOME']!;
+if (!HOME) {
+	throw new Error('Your shell should set your HOME directory as env');
 }
 
 const octokit = new Octokit({auth: GITHUB_PAT});
@@ -25,18 +30,21 @@ type RepoInfo = {
 };
 
 function getLocalRepos() {
-	const fdOutput = execSync('fd --type=directory --hidden "^\\.git$" ~/git').toString();
+	const fdOutput = execSync('fd --type=directory --hidden "^\\.git$" ~/git')
+		.toString();
 
 	const list: RepoInfo[] = [];
 	const others: string[] = [];
 
-	for (const folderLine of fdOutput.split('\n').filter(o => o.trim() !== '')) {
+	const fdOutputLines = fdOutput.split('\n').filter(o => o.trim() !== '');
+	for (const folderLine of fdOutputLines) {
 		const path = folderLine.replace(/\/.git\/?$/, '');
 		const gitOutput = execSync(`git -C ${path} remote --verbose`).toString();
 
 		const remotes: Record<string, {user: string; repo: string}> = {};
 
-		for (const remoteLine of gitOutput.split('\n').filter(o => o.trim() !== '')) {
+		const gitOutputLines = gitOutput.split('\n').filter(o => o.trim() !== '');
+		for (const remoteLine of gitOutputLines) {
 			const remoteMatch = /(\w+)\t(\S+)/.exec(remoteLine);
 			if (!remoteMatch) {
 				throw new Error('unknown git remote line: ' + remoteLine);
@@ -102,7 +110,7 @@ async function doit() {
 
 		const repoFolderName = data.name;
 
-		const targetPath = process.env['HOME']! + `/git/hub/${ownerFolder}/${permissionFolder}`;
+		const targetPath = `${HOME}/git/hub/${ownerFolder}/${permissionFolder}`;
 		mkdirSync(targetPath, {recursive: true});
 
 		const fullPath = targetPath + '/' + repoFolderName;
