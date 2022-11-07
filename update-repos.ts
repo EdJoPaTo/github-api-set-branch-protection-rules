@@ -1,26 +1,17 @@
 import { arrayFilterUnique } from "https://esm.sh/array-filter-unique@3.0.2";
 
-import { octokit } from "./lib/github.ts";
+import { octokit, searchGithubRepos } from "./lib/github.ts";
 
 async function getRepos() {
-  const opt = {
-    sort: "updated" as const,
-    q: [
-      "fork:true",
-      "archived:false",
-      "repo:grammyjs/stateless-question",
-      "user:EdJoPaTo",
-      "user:HAWHHCalendarbot",
-    ].join(" "),
-    per_page: 100,
-  };
-  const repos = [
-    await octokit.request("GET /search/repositories", { ...opt, page: 1 }),
-    await octokit.request("GET /search/repositories", { ...opt, page: 2 }),
-  ]
-    .flatMap((o) => o.data.items);
+  const repos = await searchGithubRepos([
+    "fork:true",
+    "archived:false",
+    "repo:grammyjs/stateless-question",
+    "user:EdJoPaTo",
+    "user:HAWHHCalendarbot",
+  ].join(" "));
 
-  console.log("total repos", repos.length, "/ 200 due to 2 pages");
+  console.log("total repos", repos.length);
 
   console.log(
     "not main",
