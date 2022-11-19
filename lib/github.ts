@@ -1,5 +1,5 @@
-import { Octokit } from "https://esm.sh/@octokit/core@4.1.0";
-import { Endpoints } from "https://esm.sh/@octokit/types@8.0.0";
+import { Octokit } from "npm:@octokit/core@4";
+import { Endpoints } from "npm:@octokit/types@8";
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`

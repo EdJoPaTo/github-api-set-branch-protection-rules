@@ -1,4 +1,4 @@
-import { arrayFilterUnique } from "https://esm.sh/array-filter-unique@3.0.2";
+import { arrayFilterUnique } from "npm:array-filter-unique@3";
 
 import { octokit, searchGithubRepos } from "./lib/github.ts";
 
