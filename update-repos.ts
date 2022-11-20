@@ -30,35 +30,6 @@ async function getRepos() {
   return repos;
 }
 
-void doit();
-async function doit() {
-  const repos = await getRepos();
-  console.log("repos", repos.length, repos.map((o) => o.html_url));
-
-  let allChecks: string[] = [];
-
-  for (const repo of repos) {
-    const result = await doRepo(
-      repo.owner!.login,
-      repo.name,
-      repo.private,
-      repo.default_branch,
-    );
-    allChecks.push(...(result ?? []));
-  }
-
-  console.log("\n\nall done");
-  allChecks = allChecks.filter(arrayFilterUnique());
-  const unusedWantedChecks = [...WANTED_STATICS].filter((o) =>
-    !allChecks.includes(o)
-  ).sort();
-  const wantedChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
-  const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
-  console.log("unused WANTED checks", unusedWantedChecks);
-  console.log("wanted checks", wantedChecks);
-  console.log("ignored checks", ignoredChecks);
-}
-
 function isCheckWanted(name: string): boolean {
   return WANTED_STATICS.has(name) ||
     name.startsWith("Release ") ||
@@ -84,41 +55,36 @@ async function doRepo(
   console.log();
   console.log("do repo", owner, repo);
 
-  console.log(
-    "watch repo",
-    (await octokit.request("PUT /repos/{owner}/{repo}/subscription", {
-      owner,
-      repo,
-      subscribed: true,
-    })).status,
-  );
+  await octokit.request("PUT /repos/{owner}/{repo}/subscription", {
+    owner,
+    repo,
+    subscribed: true,
+  });
 
-  console.log(
-    "update repo",
-    (await octokit.request("PATCH /repos/{owner}/{repo}", {
-      owner,
-      repo,
-      allow_auto_merge: true,
-      allow_merge_commit: false,
-      allow_rebase_merge: false,
-      allow_squash_merge: true,
-      delete_branch_on_merge: true,
-      has_wiki: false,
-    })).status,
-  );
+  await octokit.request("PATCH /repos/{owner}/{repo}", {
+    owner,
+    repo,
+    allow_auto_merge: true,
+    allow_merge_commit: false,
+    allow_rebase_merge: false,
+    allow_squash_merge: true,
+    delete_branch_on_merge: true,
+    has_wiki: false,
+  });
 
   if (privateRepo) {
     return;
   }
 
-  const allChecks = (await octokit.request(
+  const checksResponse = await octokit.request(
     "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
     {
       owner,
       repo,
       ref: defaultBranch,
     },
-  )).data.check_runs
+  );
+  const allChecks = checksResponse.data.check_runs
     .map((o) => o.name)
     .filter(arrayFilterUnique());
 
@@ -132,28 +98,51 @@ async function doRepo(
     console.log("ignored checks", ignoredChecks);
   }
 
-  console.log(
-    "protection rules",
-    (await octokit.request(
-      "PUT /repos/{owner}/{repo}/branches/{branch}/protection",
-      {
-        owner,
-        repo,
-        branch: defaultBranch,
-        required_status_checks: {
-          strict: true,
-          contexts: relevantChecks,
-        },
-        allow_deletions: false,
-        allow_force_pushes: true,
-        enforce_admins: false,
-        required_conversation_resolution: true,
-        required_linear_history: true,
-        required_pull_request_reviews: null,
-        restrictions: null,
+  await octokit.request(
+    "PUT /repos/{owner}/{repo}/branches/{branch}/protection",
+    {
+      owner,
+      repo,
+      branch: defaultBranch,
+      required_status_checks: {
+        strict: true,
+        contexts: relevantChecks,
       },
-    )).status,
+      allow_deletions: false,
+      allow_force_pushes: true,
+      enforce_admins: false,
+      required_conversation_resolution: true,
+      required_linear_history: true,
+      required_pull_request_reviews: null,
+      restrictions: null,
+    },
   );
 
   return allChecks;
 }
+
+const repos = await getRepos();
+console.log("repos", repos.length, repos.map((o) => o.html_url));
+
+let allChecks: string[] = [];
+
+for (const repo of repos) {
+  const result = await doRepo(
+    repo.owner!.login,
+    repo.name,
+    repo.private,
+    repo.default_branch,
+  );
+  allChecks.push(...(result ?? []));
+}
+
+console.log("\n\nall done");
+allChecks = allChecks.filter(arrayFilterUnique());
+const unusedWantedChecks = [...WANTED_STATICS].filter((o) =>
+  !allChecks.includes(o)
+).sort();
+const wantedChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
+const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
+console.log("unused WANTED checks", unusedWantedChecks);
+console.log("wanted checks", wantedChecks);
+console.log("ignored checks", ignoredChecks);
