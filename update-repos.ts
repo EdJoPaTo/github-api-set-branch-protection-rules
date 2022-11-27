@@ -30,6 +30,13 @@ async function getRepos() {
   return repos;
 }
 
+function logNonEmptyArray(description: string, array: unknown[]) {
+  if (array.length > 0) logArray(description, array);
+}
+function logArray(description: string, array: unknown[]) {
+  console.log(description, array.length, array);
+}
+
 function isCheckWanted(name: string): boolean {
   return WANTED_STATICS.has(name) ||
     name.startsWith("Release ") ||
@@ -89,14 +96,10 @@ async function doRepo(
     .filter(arrayFilterUnique());
 
   const relevantChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
-  if (relevantChecks.length > 0) {
-    console.log("relevant checks", relevantChecks);
-  }
+  logNonEmptyArray("relevant checks", relevantChecks);
 
   const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
-  if (ignoredChecks.length > 0) {
-    console.log("ignored checks", ignoredChecks);
-  }
+  logNonEmptyArray("ignored checks", ignoredChecks);
 
   await octokit.request(
     "PUT /repos/{owner}/{repo}/branches/{branch}/protection",
@@ -143,6 +146,6 @@ const unusedWantedChecks = [...WANTED_STATICS].filter((o) =>
 ).sort();
 const wantedChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
 const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
-console.log("unused WANTED checks", unusedWantedChecks);
-console.log("wanted checks", wantedChecks);
-console.log("ignored checks", ignoredChecks);
+logArray("unused WANTED checks", unusedWantedChecks);
+logArray("wanted checks", wantedChecks);
+logArray("ignored checks", ignoredChecks);
