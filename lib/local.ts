@@ -87,14 +87,15 @@ export type GithubRepoInfo = {
   readonly archived: boolean;
   readonly is_template?: boolean;
   readonly name: string;
-  readonly owner: { readonly login: string };
+  readonly owner: null | { readonly login: string };
   readonly private: boolean;
 };
 
 export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
-  const ownerFolder = (data.owner && EXPECTED_OWNERS.has(data.owner.login))
-    ? data.owner.login
-    : "other";
+  const ownerFolder =
+    (data.owner?.login && EXPECTED_OWNERS.has(data.owner.login))
+      ? data.owner.login
+      : "other";
 
   let permissionFolder = "";
   if (data.is_template) {
