@@ -3,7 +3,7 @@ if (!HOME) {
   throw new Error("Your shell should set your HOME directory as env");
 }
 
-export async function exec(cmd: [string, ...string[]]): Promise<string> {
+export async function exec(...cmd: [string, ...string[]]): Promise<string> {
   const process = Deno.run({ cmd, stdout: "piped" });
 
   const status = await process.status();
@@ -23,13 +23,13 @@ export type LocalGithubRepoInfo = {
 };
 
 export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
-  const fdOutput = await exec([
+  const fdOutput = await exec(
     "fd",
     "--type=directory",
     "--hidden",
     "^\\.git$",
     HOME + "/git",
-  ]);
+  );
 
   const list: LocalGithubRepoInfo[] = [];
   const others: string[] = [];
@@ -37,7 +37,7 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
   const fdOutputLines = fdOutput.split("\n").filter((o) => o.trim() !== "");
   for (const folderLine of fdOutputLines) {
     const path = folderLine.replace(/\/.git\/?$/, "");
-    const gitOutput = await exec(["git", "-C", path, "remote", "--verbose"]);
+    const gitOutput = await exec("git", "-C", path, "remote", "--verbose");
 
     const remotes: Record<string, { user: string; repo: string }> = {};
 
