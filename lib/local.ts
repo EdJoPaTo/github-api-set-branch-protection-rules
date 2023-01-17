@@ -89,6 +89,7 @@ const EXPECTED_OWNERS = new Set([
 
 export type GithubRepoInfo = {
   readonly archived: boolean;
+  readonly fork: boolean;
   readonly is_template?: boolean;
   readonly name: string;
   readonly owner: null | { readonly login: string };
@@ -96,27 +97,30 @@ export type GithubRepoInfo = {
 };
 
 export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
-  const ownerFolder =
-    (data.owner?.login && EXPECTED_OWNERS.has(data.owner.login))
-      ? data.owner.login
-      : "other";
+  const owner = (data.owner?.login && EXPECTED_OWNERS.has(data.owner.login))
+    ? data.owner.login
+    : "other";
 
-  let permissionFolder = "";
+  let folder = "";
+
   if (data.is_template) {
-    permissionFolder += "template";
+    folder = `${owner}/template`;
   } else {
+    folder += data.fork ? "other" : owner;
+    folder += "/";
+
     if (data.archived) {
-      permissionFolder += "archived-";
+      folder += "archived-";
     }
 
-    permissionFolder += data.private ? "private" : "public";
+    folder += data.private ? "private" : "public";
   }
 
   const repoFolderName = data.name;
 
-  const targetPath = `${HOME}/git/hub/${ownerFolder}/${permissionFolder}`;
-  Deno.mkdirSync(targetPath, { recursive: true });
+  const containingFolder = `${HOME}/git/hub/${folder}`;
+  Deno.mkdirSync(containingFolder, { recursive: true });
 
-  const fullPath = targetPath + "/" + repoFolderName;
+  const fullPath = containingFolder + "/" + repoFolderName;
   return fullPath;
 }
