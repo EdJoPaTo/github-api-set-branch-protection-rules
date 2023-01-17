@@ -1,4 +1,8 @@
-import { getExpectedLocalPathOfRepo, getLocalRepos } from "./lib/local.ts";
+import {
+  getExpectedLocalPathOfRepo,
+  getLocalRepos,
+  HOME,
+} from "./lib/local.ts";
 import { octokit } from "./lib/github.ts";
 
 console.time("getLocalRepos");
@@ -15,9 +19,14 @@ for (const entry of localRepos) {
     const fullPath = getExpectedLocalPathOfRepo(response.data);
 
     if (entry.path === fullPath) {
-      console.log("correct folder", fullPath);
+      console.log("correct folder", fullPath.replace(HOME, "~"));
     } else {
-      console.log("rename        ", entry.path, fullPath);
+      console.log(
+        "rename        ",
+        entry.path.replace(HOME, "~"),
+        "→",
+        fullPath.replace(HOME, "~"),
+      );
       Deno.renameSync(entry.path, fullPath);
     }
   } catch (error: unknown) {

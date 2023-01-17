@@ -52,7 +52,11 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
       const url = remoteMatch[2]!;
       const urlMatch = /github\.com.([^/]+)\/(\S+)/.exec(url);
       if (!urlMatch) {
-        console.log("skip non github url", path, remoteLine);
+        console.log(
+          "skip non github url",
+          path.replace(HOME, "~"),
+          remoteLine,
+        );
         continue;
       }
 

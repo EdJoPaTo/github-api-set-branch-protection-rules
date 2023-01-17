@@ -1,4 +1,4 @@
-import { exec, getExpectedLocalPathOfRepo } from "./lib/local.ts";
+import { exec, getExpectedLocalPathOfRepo, HOME } from "./lib/local.ts";
 import { searchGithubRepos } from "./lib/github.ts";
 
 async function getRepos() {
@@ -14,7 +14,7 @@ async function getRepos() {
 
 for (const repo of await getRepos()) {
   const localPath = getExpectedLocalPathOfRepo(repo);
-  console.log(localPath, repo.ssh_url);
+  console.log(localPath.replace(HOME, "~"), repo.ssh_url);
 
   try {
     await Deno.stat(localPath);
