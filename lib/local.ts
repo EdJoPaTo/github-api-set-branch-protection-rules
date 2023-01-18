@@ -32,7 +32,7 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
   );
 
   const list: LocalGithubRepoInfo[] = [];
-  const others: string[] = [];
+  const skipped: string[] = [];
 
   const paths = fdOutput
     .split("\n")
@@ -77,11 +77,11 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
     if (relevant) {
       list.push({ path, ...relevant });
     } else {
-      others.push(path);
+      skipped.push(path);
     }
   }
 
-  console.log("other repos:", others.length, others);
+  console.log("skipped repos:", skipped.length, skipped);
   return list;
 }
 
