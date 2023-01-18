@@ -125,7 +125,7 @@ async function doRepo(
 }
 
 const repos = await getRepos();
-console.log("repos", repos.length, repos.map((o) => o.html_url));
+console.log("repos", repos.length, repos.map((o) => o.full_name));
 
 let allChecks: string[] = [];
 
