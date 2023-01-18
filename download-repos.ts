@@ -12,10 +12,16 @@ async function getRepos() {
   return repos;
 }
 
-for (const repo of await getRepos()) {
-  const localPath = getExpectedLocalPathOfRepo(repo);
-  console.log(localPath.replace(HOME, "~"), repo.ssh_url);
+const allRepos = await getRepos();
+const jobs = allRepos
+  .map((repo) => ({
+    localPath: getExpectedLocalPathOfRepo(repo),
+    repo,
+  }))
+  .sort((a, b) => a.localPath.localeCompare(b.localPath));
 
+for (const { localPath, repo } of jobs) {
+  console.log(localPath.replace(HOME, "~"));
   try {
     await Deno.stat(localPath);
     // Path exists, probably fine

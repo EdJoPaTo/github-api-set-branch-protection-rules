@@ -34,9 +34,13 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
   const list: LocalGithubRepoInfo[] = [];
   const others: string[] = [];
 
-  const fdOutputLines = fdOutput.split("\n").filter((o) => o.trim() !== "");
-  for (const folderLine of fdOutputLines) {
-    const path = folderLine.replace(/\/.git\/?$/, "");
+  const paths = fdOutput
+    .split("\n")
+    .map((o) => o.trim())
+    .filter(Boolean)
+    .map((o) => o.replace(/\/.git\/?$/, ""))
+    .sort();
+  for (const path of paths) {
     const gitOutput = await exec("git", "-C", path, "remote", "--verbose");
 
     const remotes: Record<string, { user: string; repo: string }> = {};
@@ -77,7 +81,7 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
     }
   }
 
-  console.log("other repos:", others.length, others.sort());
+  console.log("other repos:", others.length, others);
   return list;
 }
 
