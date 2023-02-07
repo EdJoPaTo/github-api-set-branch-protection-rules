@@ -71,6 +71,7 @@ async function doRepo(
   await octokit.request("PATCH /repos/{owner}/{repo}", {
     owner,
     repo,
+    allow_update_branch: true,
     allow_auto_merge: true,
     allow_merge_commit: false,
     allow_rebase_merge: false,
