@@ -79,6 +79,16 @@ async function doRepo(
     has_wiki: false,
   });
 
+  await octokit.request(
+    "PUT /repos/{owner}/{repo}/actions/permissions/workflow",
+    {
+      owner,
+      repo,
+      can_approve_pull_request_reviews: false,
+      default_workflow_permissions: "read",
+    },
+  );
+
   if (privateRepo) {
     return;
   }
