@@ -90,6 +90,26 @@ async function doRepo(
     },
   );
 
+  const workflowsResponse = await octokit.request(
+    "GET /repos/{owner}/{repo}/actions/workflows",
+    {
+      owner,
+      repo,
+      per_page: 100,
+    },
+  );
+  const { workflows } = workflowsResponse.data;
+  const nonActive = workflows.filter((o) => o.state !== "active");
+  logNonEmptyArray(
+    "non active workflows",
+    nonActive.map((o) => ({
+      state: o.state,
+      name: o.name,
+      path: o.path,
+      html_url: o.html_url,
+    })),
+  );
+
   if (privateRepo) {
     return;
   }
