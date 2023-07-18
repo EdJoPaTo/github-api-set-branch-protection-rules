@@ -3,6 +3,7 @@ import { searchGithubRepos } from "./lib/github.ts";
 
 async function getRepos() {
   const repos = await searchGithubRepos([
+    "archived:false",
     "fork:true",
     "repo:grammyjs/stateless-question",
     "user:EdJoPaTo",
