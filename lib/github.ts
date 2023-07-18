@@ -10,13 +10,13 @@ if (!GITHUB_PAT) {
 
 export const octokit = new Octokit({ auth: GITHUB_PAT });
 
-export type GithubSearchRepoInfos =
-  Endpoints["GET /search/repositories"]["response"]["data"]["items"];
+export type GithubSearchRepoInfo =
+  Endpoints["GET /search/repositories"]["response"]["data"]["items"][0];
 
 export async function searchGithubRepos(
   query: string,
-): Promise<GithubSearchRepoInfos> {
-  const repos: GithubSearchRepoInfos = [];
+): Promise<GithubSearchRepoInfo[]> {
+  const repos: GithubSearchRepoInfo[] = [];
 
   for (let page = 1;; page++) {
     const response = await octokit.request("GET /search/repositories", {
