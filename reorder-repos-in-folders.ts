@@ -19,10 +19,10 @@ for (const entry of localRepos) {
     const fullPath = getExpectedLocalPathOfRepo(response.data);
 
     if (entry.path === fullPath) {
-      console.log("correct folder", fullPath.replace(HOME, "~"));
+      console.log("correct", fullPath.replace(HOME, "~"));
     } else {
       console.log(
-        "rename        ",
+        "rename ",
         entry.path.replace(HOME, "~"),
         "→",
         fullPath.replace(HOME, "~"),
