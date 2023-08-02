@@ -29,7 +29,7 @@ for (const entry of localRepos) {
       );
       Deno.renameSync(entry.path, fullPath);
     }
-  } catch (error: unknown) {
+  } catch (error) {
     console.error(
       "failed with repo",
       entry,
