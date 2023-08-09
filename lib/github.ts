@@ -5,32 +5,32 @@ import type { Endpoints } from "https://esm.sh/@octokit/types@9";
 // Then use `export GITHUB_PAT='ghp_…'`
 const GITHUB_PAT = Deno.env.get("GITHUB_PAT")!;
 if (!GITHUB_PAT) {
-  throw new Error("GITHUB_PAT is not defined");
+	throw new Error("GITHUB_PAT is not defined");
 }
 
 export const octokit = new Octokit({ auth: GITHUB_PAT });
 
 export type GithubSearchRepoInfo =
-  Endpoints["GET /search/repositories"]["response"]["data"]["items"][0];
+	Endpoints["GET /search/repositories"]["response"]["data"]["items"][0];
 
 export async function searchGithubRepos(
-  query: string,
+	query: string,
 ): Promise<GithubSearchRepoInfo[]> {
-  const repos: GithubSearchRepoInfo[] = [];
+	const repos: GithubSearchRepoInfo[] = [];
 
-  for (let page = 1;; page++) {
-    const response = await octokit.request("GET /search/repositories", {
-      per_page: 100,
-      sort: "updated",
-      page,
-      q: query,
-    });
-    const { items } = response.data;
-    repos.push(...items);
-    if (items.length < 100) {
-      break;
-    }
-  }
+	for (let page = 1;; page++) {
+		const response = await octokit.request("GET /search/repositories", {
+			per_page: 100,
+			sort: "updated",
+			page,
+			q: query,
+		});
+		const { items } = response.data;
+		repos.push(...items);
+		if (items.length < 100) {
+			break;
+		}
+	}
 
-  return repos;
+	return repos;
 }
