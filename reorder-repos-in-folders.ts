@@ -30,10 +30,16 @@ for (const entry of localRepos) {
 			Deno.renameSync(entry.path, fullPath);
 		}
 	} catch (error) {
+		Deno.mkdirSync(`${HOME}/git/hub/error`, { recursive: true });
+		const fullPath = `${HOME}/git/hub/error/${entry.repo}`;
 		console.error(
-			"failed with repo",
+			"failed ",
+			entry.path.replace(HOME, "~"),
+			"→",
+			fullPath.replace(HOME, "~"),
 			entry,
 			error instanceof Error ? error.message : error,
 		);
+		// Deno.renameSync(entry.path, fullPath);
 	}
 }
