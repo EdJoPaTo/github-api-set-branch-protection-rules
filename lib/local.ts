@@ -84,12 +84,6 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
 	return list;
 }
 
-const EXPECTED_OWNERS = new Set([
-	"EdJoPaTo",
-	"HAWHHCalendarBot",
-	"grammyjs",
-]);
-
 export type GithubRepoInfo = {
 	readonly archived: boolean;
 	readonly fork: boolean;
@@ -97,22 +91,28 @@ export type GithubRepoInfo = {
 	readonly name: string;
 	readonly owner: null | { readonly login: string };
 	readonly private: boolean;
+	readonly parent?: {
+		readonly name: string;
+		readonly owner: null | { readonly login: string };
+	};
 };
 
 export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
-	const owner = (data.owner?.login && EXPECTED_OWNERS.has(data.owner.login))
-		? data.owner.login
-		: "other";
+	const owner = data.owner?.login ?? "other";
 
 	let folder = "";
 
 	if (data.is_template) {
 		folder = `template/${owner}`;
 	} else {
-		folder += data.fork ? "other" : owner;
+		folder += owner;
 
 		if (data.archived) {
 			folder += "-archived";
+		}
+
+		if (data.parent?.owner) {
+			folder += "-fork-" + data.parent.owner.login;
 		}
 
 		folder += "/";
