@@ -112,7 +112,7 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 		}
 
 		if (data.parent?.owner) {
-			folder += "-fork-" + data.parent.owner.login;
+			folder += "-fork/" + data.parent.owner.login;
 		}
 
 		folder += "/";
