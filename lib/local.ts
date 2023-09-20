@@ -91,10 +91,6 @@ export type GithubRepoInfo = {
 	readonly name: string;
 	readonly owner: null | { readonly login: string };
 	readonly private: boolean;
-	readonly parent?: {
-		readonly name: string;
-		readonly owner: null | { readonly login: string };
-	};
 };
 
 export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
@@ -111,8 +107,8 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 			folder += "-archived";
 		}
 
-		if (data.parent?.owner) {
-			folder += "-fork/" + data.parent.owner.login;
+		if (data.fork) {
+			folder += "-fork"
 		}
 
 		folder += "/";
