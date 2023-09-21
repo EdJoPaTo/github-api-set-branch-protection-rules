@@ -108,7 +108,7 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 		}
 
 		if (data.fork) {
-			folder += "-fork"
+			folder += "-fork";
 		}
 
 		folder += "/";
