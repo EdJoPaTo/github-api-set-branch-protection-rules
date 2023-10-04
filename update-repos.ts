@@ -126,10 +126,10 @@ async function doRepo(
 		.filter(arrayFilterUnique());
 
 	const relevantChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
-	logNonEmptyArray("relevant checks", relevantChecks);
+	// logNonEmptyArray("relevant checks", relevantChecks);
 
-	const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
-	logNonEmptyArray("ignored checks", ignoredChecks);
+	// const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
+	// logNonEmptyArray("ignored checks", ignoredChecks);
 
 	await octokit.request(
 		"PUT /repos/{owner}/{repo}/branches/{branch}/protection",
