@@ -12,14 +12,14 @@ async function getRepos() {
 
 	console.log("total repos", repos.length);
 
-	console.log(
+	logNonEmptyArray(
 		"not main",
 		repos
 			.filter((o) => o.default_branch !== "main")
 			.map((o) => `${o.default_branch} ${o.html_url}`),
 	);
 
-	console.log(
+	logNonEmptyArray(
 		"has projects",
 		repos
 			.filter((o) => o.has_projects)
@@ -155,7 +155,7 @@ async function doRepo(
 }
 
 const repos = await getRepos();
-console.log("repos", repos.length, repos.map((o) => o.full_name));
+logNonEmptyArray("repos", repos.map((o) => o.full_name));
 
 let allChecks: string[] = [];
 
