@@ -38,8 +38,10 @@ function logArray(description: string, array: unknown[]) {
 
 function isCheckWanted(name: string): boolean {
 	return WANTED_STATICS.has(name) ||
+		name.startsWith("Node.js") ||
 		name.startsWith("Release ") ||
-		name.startsWith("Node.js");
+		name.startsWith("Test 1") || // Test on Rust version 1.23.4
+		name.startsWith("Test stable");
 }
 
 // Do not add website-stalker. The git push doesnt work anymore then
