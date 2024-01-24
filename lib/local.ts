@@ -24,8 +24,9 @@ export type LocalGithubRepoInfo = {
 export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
 	const fdOutput = await exec(
 		"fd",
-		"--type=directory",
 		"--hidden",
+		"--no-ignore-vcs",
+		"--type=directory",
 		"^\\.git$",
 		HOME + "/git",
 	);
