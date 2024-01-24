@@ -1,9 +1,9 @@
+import { octokit } from "./lib/github.ts";
 import {
 	getExpectedLocalPathOfRepo,
 	getLocalRepos,
 	HOME,
 } from "./lib/local.ts";
-import { octokit } from "./lib/github.ts";
 
 console.time("getLocalRepos");
 const localRepos = await getLocalRepos();

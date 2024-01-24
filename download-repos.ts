@@ -1,5 +1,5 @@
-import { exec, getExpectedLocalPathOfRepo, HOME } from "./lib/local.ts";
 import { searchGithubRepos } from "./lib/github.ts";
+import { exec, getExpectedLocalPathOfRepo, HOME } from "./lib/local.ts";
 
 async function getRepos() {
 	const repos = await searchGithubRepos([
