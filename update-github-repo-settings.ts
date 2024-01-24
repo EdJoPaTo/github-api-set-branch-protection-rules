@@ -46,6 +46,7 @@ function isCheckWanted(name: string): boolean {
 const WANTED_STATICS = new Set([
 	"build", // Probably PlatformIO
 	"denofmt-and-lint",
+	"doc",
 	"docker",
 	"rustfmt",
 	"Rustfmt", // legacy for rustfmt
