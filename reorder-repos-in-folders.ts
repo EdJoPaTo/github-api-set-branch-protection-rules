@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { octokit } from "./lib/github.ts";
 import {
 	getExpectedLocalPathOfRepo,
@@ -20,6 +21,13 @@ for (const entry of localRepos) {
 
 		if (entry.path === fullPath) {
 			console.log("correct", fullPath.replace(HOME, "~"));
+		} else if (existsSync(fullPath)) {
+			console.log(
+				"duplica",
+				entry.path.replace(HOME, "~"),
+				"→",
+				fullPath.replace(HOME, "~"),
+			);
 		} else {
 			console.log(
 				"rename ",
