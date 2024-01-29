@@ -1,4 +1,4 @@
-import { arrayFilterUnique } from "https://esm.sh/array-filter-unique@3";
+import { arrayFilterUnique } from "https://deno.land/x/array_filter_unique@v3.1.0/mod.ts";
 import { octokit, searchGithubRepos } from "./lib/github.ts";
 
 async function getRepos() {
