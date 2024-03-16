@@ -51,11 +51,12 @@ function isCheckWanted(name: string): boolean {
 // Do not add website-stalker. The git push doesnt work anymore then
 const WANTED_STATICS = new Set([
 	"build", // Probably PlatformIO
+	"check",
 	"denofmt-and-lint",
 	"doc",
 	"docker",
+	"publish-dry-run",
 	"rustfmt",
-	"Rustfmt", // legacy for rustfmt
 	"test", // Probably Deno
 ]);
 
