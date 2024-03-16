@@ -1,4 +1,4 @@
-import { Octokit } from "https://esm.sh/@octokit/core@5";
+import { Octokit } from "https://esm.sh/@octokit/core@6";
 import type { Endpoints } from "https://esm.sh/@octokit/types@12";
 
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
