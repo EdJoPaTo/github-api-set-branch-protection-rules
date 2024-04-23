@@ -78,13 +78,20 @@ async function doRepo(
 	await octokit.request("PATCH /repos/{owner}/{repo}", {
 		owner,
 		repo,
-		allow_update_branch: true,
 		allow_auto_merge: true,
 		allow_merge_commit: false,
 		allow_rebase_merge: false,
 		allow_squash_merge: true,
+		allow_update_branch: true,
 		delete_branch_on_merge: true,
 		has_wiki: false,
+		web_commit_signoff_required: true,
+		security_and_analysis: {
+			// @ts-expect-error type not yet known
+			dependabot_security_updates: { status: "disabled" },
+			secret_scanning: privateRepo ? undefined : { status: "enabled" },
+			secret_scanning_push_protection: { status: "enabled" },
+		},
 	});
 
 	await octokit.request(
@@ -145,17 +152,19 @@ async function doRepo(
 			owner,
 			repo,
 			branch: defaultBranch,
-			required_status_checks: {
-				strict: true,
-				contexts: relevantChecks,
-			},
 			allow_deletions: false,
 			allow_force_pushes: true,
+			block_creations: false,
 			enforce_admins: false,
+			lock_branch: false,
 			required_conversation_resolution: true,
 			required_linear_history: true,
 			required_pull_request_reviews: null,
 			restrictions: null,
+			required_status_checks: {
+				strict: true,
+				contexts: relevantChecks,
+			},
 		},
 	);
 
