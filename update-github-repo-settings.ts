@@ -54,8 +54,8 @@ const WANTED_STATICS = new Set([
 	"check",
 	"denofmt-and-lint",
 	"doc",
-	"docker",
 	"publish-dry-run",
+	"Run with example config", // website-stalker
 	"rustfmt",
 	"test", // Probably Deno
 ]);
