@@ -43,6 +43,7 @@ function isCheckWanted(name: string): boolean {
 	return WANTED_STATICS.has(name) ||
 		name.startsWith("Clippy ") ||
 		name.startsWith("Features ") ||
+		name.startsWith("MSRV ") ||
 		name.startsWith("Node.js") ||
 		name.startsWith("Release ") ||
 		name.startsWith("Test ");
