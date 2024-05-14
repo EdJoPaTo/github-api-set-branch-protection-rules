@@ -1,6 +1,12 @@
 import { Octokit } from "https://esm.sh/@octokit/core@6";
 import type { Endpoints } from "https://esm.sh/@octokit/types@12";
 
+export const MY_REPOS_SEARCH_PARAMS = [
+	"repo:grammyjs/stateless-question",
+	"user:EdJoPaTo",
+	"user:HAWHHCalendarbot",
+] as const;
+
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
 // Then use `export GITHUB_PAT='ghp_…'`
 const GITHUB_PAT = Deno.env.get("GITHUB_PAT")!;

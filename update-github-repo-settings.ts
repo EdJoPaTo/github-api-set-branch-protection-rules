@@ -1,13 +1,15 @@
 import { arrayFilterUnique } from "jsr:@edjopato/array-filter-unique@^3";
-import { octokit, searchGithubRepos } from "./lib/github.ts";
+import {
+	MY_REPOS_SEARCH_PARAMS,
+	octokit,
+	searchGithubRepos,
+} from "./lib/github.ts";
 
 async function getRepos() {
 	const repos = await searchGithubRepos([
 		"fork:true",
 		"archived:false",
-		"repo:grammyjs/stateless-question",
-		"user:EdJoPaTo",
-		"user:HAWHHCalendarbot",
+		...MY_REPOS_SEARCH_PARAMS,
 	].join(" "));
 
 	console.log("total repos", repos.length);

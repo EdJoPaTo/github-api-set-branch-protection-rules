@@ -1,12 +1,10 @@
-import { searchGithubRepos } from "./lib/github.ts";
+import { MY_REPOS_SEARCH_PARAMS, searchGithubRepos } from "./lib/github.ts";
 import { exec, getExpectedLocalPathOfRepo, HOME } from "./lib/local.ts";
 
 async function getRepos() {
 	const repos = await searchGithubRepos([
 		"fork:true",
-		"repo:grammyjs/stateless-question",
-		"user:EdJoPaTo",
-		"user:HAWHHCalendarbot",
+		...MY_REPOS_SEARCH_PARAMS,
 	].join(" "));
 	console.log("total repos", repos.length);
 	return repos;
