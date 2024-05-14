@@ -31,6 +31,41 @@ const WANTED_STATICS = new Set([
 	"test", // Probably Deno
 ]);
 
+async function updateTagProtections(owner: string, repo: string) {
+	const { data } = await octokit.request(
+		"GET /repos/{owner}/{repo}/tags/protection",
+		{
+			owner,
+			repo,
+		},
+	);
+	const hasTagAnyProtection = data
+		.some((rule) => rule.pattern === "*");
+	const superfluousTagProtections = data
+		.filter((rule) => rule.pattern !== "*");
+
+	if (!hasTagAnyProtection) {
+		await octokit.request("POST /repos/{owner}/{repo}/tags/protection", {
+			owner,
+			repo,
+			pattern: "*",
+		});
+	}
+	for (const rule of superfluousTagProtections) {
+		console.log("superfluousTagProtection", rule);
+		if (rule.id) {
+			await octokit.request(
+				"DELETE /repos/{owner}/{repo}/tags/protection/{tag_protection_id}",
+				{
+					owner,
+					repo,
+					tag_protection_id: rule.id,
+				},
+			);
+		}
+	}
+}
+
 async function doRepo(
 	owner: string,
 	repo: string,
@@ -77,6 +112,8 @@ async function doRepo(
 	if (privateRepo) {
 		return;
 	}
+
+	await updateTagProtections(owner, repo);
 
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
