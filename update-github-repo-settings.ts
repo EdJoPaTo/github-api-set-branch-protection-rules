@@ -34,10 +34,7 @@ const WANTED_STATICS = new Set([
 async function updateTagProtections(owner: string, repo: string) {
 	const { data } = await octokit.request(
 		"GET /repos/{owner}/{repo}/tags/protection",
-		{
-			owner,
-			repo,
-		},
+		{ owner, repo },
 	);
 	const hasTagAnyProtection = data
 		.some((rule) => rule.pattern === "*");
@@ -45,22 +42,17 @@ async function updateTagProtections(owner: string, repo: string) {
 		.filter((rule) => rule.pattern !== "*");
 
 	if (!hasTagAnyProtection) {
-		await octokit.request("POST /repos/{owner}/{repo}/tags/protection", {
-			owner,
-			repo,
-			pattern: "*",
-		});
+		await octokit.request(
+			"POST /repos/{owner}/{repo}/tags/protection",
+			{ owner, repo, pattern: "*" },
+		);
 	}
 	for (const rule of superfluousTagProtections) {
 		console.log("superfluousTagProtection", rule);
 		if (rule.id) {
 			await octokit.request(
 				"DELETE /repos/{owner}/{repo}/tags/protection/{tag_protection_id}",
-				{
-					owner,
-					repo,
-					tag_protection_id: rule.id,
-				},
+				{ owner, repo, tag_protection_id: rule.id },
 			);
 		}
 	}
@@ -74,11 +66,10 @@ async function doRepo(
 ) {
 	console.log("\ndo repo", owner, repo);
 
-	await octokit.request("PUT /repos/{owner}/{repo}/subscription", {
-		owner,
-		repo,
-		subscribed: true,
-	});
+	await octokit.request(
+		"PUT /repos/{owner}/{repo}/subscription",
+		{ owner, repo, subscribed: true },
+	);
 
 	await octokit.request("PATCH /repos/{owner}/{repo}", {
 		owner,
@@ -117,11 +108,7 @@ async function doRepo(
 
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
-		{
-			owner,
-			repo,
-			ref: defaultBranch,
-		},
+		{ owner, repo, ref: defaultBranch },
 	);
 	const allChecks = checksResponse.data.check_runs
 		.map((o) => o.name)
