@@ -36,18 +36,13 @@ async function updateTagProtections(owner: string, repo: string) {
 		"GET /repos/{owner}/{repo}/tags/protection",
 		{ owner, repo },
 	);
-	const hasTagAnyProtection = data
-		.some((rule) => rule.pattern === "*");
-	const superfluousTagProtections = data
-		.filter((rule) => rule.pattern !== "*");
-
-	if (!hasTagAnyProtection) {
+	if (!data.some((rule) => rule.pattern === "*")) {
 		await octokit.request(
 			"POST /repos/{owner}/{repo}/tags/protection",
 			{ owner, repo, pattern: "*" },
 		);
 	}
-	for (const rule of superfluousTagProtections) {
+	for (const rule of data.filter((rule) => rule.pattern !== "*")) {
 		console.log("superfluousTagProtection", rule);
 		if (rule.id) {
 			await octokit.request(
