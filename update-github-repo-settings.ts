@@ -125,12 +125,13 @@ async function doRepo(
 	);
 	const allChecks = checksResponse.data.check_runs
 		.map((o) => o.name)
-		.filter(arrayFilterUnique());
+		.filter(arrayFilterUnique())
+		.sort();
 
-	const relevantChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
+	const relevantChecks = allChecks.filter((o) => isCheckWanted(o));
 	// logNonEmptyArray("relevant checks", relevantChecks);
 
-	// const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
+	// const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o));
 	// logNonEmptyArray("ignored checks", ignoredChecks);
 
 	await octokit.request(
@@ -177,12 +178,12 @@ for (const repo of repos) {
 }
 
 console.log("\n\nall done");
-allChecks = allChecks.filter(arrayFilterUnique());
+allChecks = allChecks.filter(arrayFilterUnique()).sort();
 const unusedWantedChecks = [...WANTED_STATICS].filter((o) =>
 	!allChecks.includes(o)
-).sort();
-const wantedChecks = allChecks.filter((o) => isCheckWanted(o)).sort();
-const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o)).sort();
+);
+const wantedChecks = allChecks.filter((o) => isCheckWanted(o));
+const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o));
 logArray("unused WANTED checks", unusedWantedChecks);
 logArray("wanted checks", wantedChecks);
 logArray("ignored checks", ignoredChecks);
