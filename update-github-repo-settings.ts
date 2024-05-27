@@ -53,6 +53,107 @@ async function updateTagProtections(owner: string, repo: string) {
 	}
 }
 
+async function removeBranchProtections(owner: string, repo: string) {
+	const branchesResponse = await octokit.request(
+		"GET /repos/{owner}/{repo}/branches",
+		{ owner, repo },
+	);
+	const protectedBranches = branchesResponse.data
+		.filter((o) => o.protection?.enabled)
+		.map((o) => o.name);
+	for (const branch of protectedBranches) {
+		await octokit.request(
+			"DELETE /repos/{owner}/{repo}/branches/{branch}/protection",
+			{ owner, repo, branch },
+		);
+	}
+}
+
+async function updateRepositoryRules(
+	owner: string,
+	repo: string,
+	ghaPushesToDefault: boolean,
+	relevantChecks: ReadonlyArray<Readonly<{ name: string; appId?: number }>>,
+) {
+	const rulesetsResponse = await octokit.request(
+		"GET /repos/{owner}/{repo}/rulesets",
+		{ owner, repo },
+	);
+
+	const defaultBranchRuleName = "Default Branch Protection";
+	let defaultBranchRuleId = rulesetsResponse.data.find((rule) =>
+		rule.source_type === "Repository" &&
+		rule.target === "branch" &&
+		rule.name === defaultBranchRuleName
+	)?.id;
+	if (!defaultBranchRuleId) {
+		const bla = await octokit.request("POST /repos/{owner}/{repo}/rulesets", {
+			owner,
+			repo,
+			name: defaultBranchRuleName,
+			enforcement: "disabled",
+			conditions: { ref_name: { exclude: [], include: ["~DEFAULT_BRANCH"] } },
+		});
+		defaultBranchRuleId = bla.data.id;
+	}
+
+	const signedCommitsRule = { type: "required_signatures" } as const;
+	const prRule = {
+		type: "pull_request",
+		parameters: {
+			dismiss_stale_reviews_on_push: true,
+			require_code_owner_review: true,
+			require_last_push_approval: relevantChecks.length === 0, // When there is no check, require approval
+			required_approving_review_count: 0,
+			required_review_thread_resolution: true,
+		},
+	} as const;
+
+	try {
+		await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
+			owner,
+			repo,
+			ruleset_id: defaultBranchRuleId,
+			enforcement: "active",
+			conditions: { ref_name: { exclude: [], include: ["~DEFAULT_BRANCH"] } },
+			bypass_actors: [
+				{
+					actor_id: 1,
+					actor_type: "OrganizationAdmin",
+					bypass_mode: "always",
+				},
+				{
+					actor_id: 5, // Repository Admin
+					actor_type: "RepositoryRole",
+					bypass_mode: "always",
+				},
+			],
+			rules: [
+				{ type: "creation" },
+				{ type: "non_fast_forward" },
+				{ type: "deletion" },
+				{ type: "required_linear_history" },
+				{
+					type: "required_status_checks",
+					parameters: {
+						strict_required_status_checks_policy: true,
+						required_status_checks: relevantChecks.map((check) => ({
+							context: check.name,
+							integration_id: check.appId,
+						})),
+					},
+				},
+				...(ghaPushesToDefault ? [] : [prRule, signedCommitsRule]),
+			],
+		});
+	} catch (err) {
+		console.error(
+			"update default branch ruleset error",
+			err instanceof Error ? err.message : err,
+		);
+	}
+}
+
 async function doRepo(
 	owner: string,
 	repo: string,
@@ -100,45 +201,25 @@ async function doRepo(
 	}
 
 	await updateTagProtections(owner, repo);
+	await removeBranchProtections(owner, repo);
 
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
 		{ owner, repo, ref: defaultBranch },
 	);
 	const allChecks = checksResponse.data.check_runs
-		.map((o) => o.name)
-		.filter(arrayFilterUnique())
-		.sort();
-
-	const relevantChecks = allChecks.filter((o) => isCheckWanted(o));
+		.filter((check) => check.app?.id !== 29110) // Dependabot
+		.map((check) => ({ appId: check.app?.id, name: check.name }))
+		.filter(arrayFilterUnique((check) => `${check.appId} ${check.name}`))
+		.sort((a, b) => a.name.localeCompare(b.name));
+	const ghaPushesToDefault = allChecks
+		.some((check) => check.name === "website-stalker");
+	const relevantChecks = allChecks.filter((check) => isCheckWanted(check.name));
 	// logNonEmptyArray("relevant checks", relevantChecks);
 
-	// const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o));
-	// logNonEmptyArray("ignored checks", ignoredChecks);
+	await updateRepositoryRules(owner, repo, ghaPushesToDefault, relevantChecks);
 
-	await octokit.request(
-		"PUT /repos/{owner}/{repo}/branches/{branch}/protection",
-		{
-			owner,
-			repo,
-			branch: defaultBranch,
-			allow_deletions: false,
-			allow_force_pushes: true,
-			block_creations: false,
-			enforce_admins: false,
-			lock_branch: false,
-			required_conversation_resolution: true,
-			required_linear_history: true,
-			required_pull_request_reviews: null,
-			restrictions: null,
-			required_status_checks: {
-				strict: true,
-				contexts: relevantChecks,
-			},
-		},
-	);
-
-	return allChecks;
+	return allChecks.map((check) => check.name);
 }
 
 const repos = await searchGithubRepos([
