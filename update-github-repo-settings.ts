@@ -31,18 +31,12 @@ const WANTED_STATICS = new Set([
 	"test", // Probably Deno
 ]);
 
-async function updateTagProtections(owner: string, repo: string) {
+async function removeTagProtections(owner: string, repo: string) {
 	const { data } = await octokit.request(
 		"GET /repos/{owner}/{repo}/tags/protection",
 		{ owner, repo },
 	);
-	if (!data.some((rule) => rule.pattern === "*")) {
-		await octokit.request(
-			"POST /repos/{owner}/{repo}/tags/protection",
-			{ owner, repo, pattern: "*" },
-		);
-	}
-	for (const rule of data.filter((rule) => rule.pattern !== "*")) {
+	for (const rule of data) {
 		console.log("superfluousTagProtection", rule);
 		if (rule.id) {
 			await octokit.request(
@@ -69,7 +63,7 @@ async function removeBranchProtections(owner: string, repo: string) {
 	}
 }
 
-async function updateRepositoryRules(
+async function updateRulesets(
 	owner: string,
 	repo: string,
 	ghaPushesToDefault: boolean,
@@ -80,22 +74,72 @@ async function updateRepositoryRules(
 		{ owner, repo },
 	);
 
-	const defaultBranchRuleName = "Default Branch Protection";
-	let defaultBranchRuleId = rulesetsResponse.data.find((rule) =>
-		rule.source_type === "Repository" &&
-		rule.target === "branch" &&
-		rule.name === defaultBranchRuleName
-	)?.id;
-	if (!defaultBranchRuleId) {
-		const bla = await octokit.request("POST /repos/{owner}/{repo}/rulesets", {
-			owner,
-			repo,
-			name: defaultBranchRuleName,
-			enforcement: "disabled",
-			conditions: { ref_name: { exclude: [], include: ["~DEFAULT_BRANCH"] } },
-		});
-		defaultBranchRuleId = bla.data.id;
+	async function ensureRuleset(
+		target: "branch" | "tag",
+		name: string,
+	): Promise<number> {
+		let id = rulesetsResponse.data.find((rule) =>
+			rule.source_type === "Repository" &&
+			rule.target === target &&
+			rule.name === name
+		)?.id;
+		if (!id) {
+			const bla = await octokit.request("POST /repos/{owner}/{repo}/rulesets", {
+				owner,
+				repo,
+				target,
+				name,
+				enforcement: "disabled",
+			});
+			id = bla.data.id;
+		}
+		return id;
 	}
+
+	await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
+		owner,
+		repo,
+		ruleset_id: await ensureRuleset("tag", "Tags except versions"),
+		enforcement: "active",
+		conditions: {
+			ref_name: { include: ["~ALL"], exclude: ["refs/tags/v*.*.*"] },
+		},
+		rules: [
+			{ type: "creation" },
+			{ type: "deletion" },
+			{ type: "non_fast_forward" },
+			{ type: "required_linear_history" },
+			{ type: "required_signatures" },
+			{ type: "update" },
+		],
+	});
+	await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
+		owner,
+		repo,
+		ruleset_id: await ensureRuleset("tag", "Version Tags"),
+		enforcement: "active",
+		conditions: { ref_name: { include: ["refs/tags/v*.*.*"], exclude: [] } },
+		bypass_actors: [
+			{
+				actor_id: 1,
+				actor_type: "OrganizationAdmin",
+				bypass_mode: "always",
+			},
+			{
+				actor_id: 5, // Repository Admin
+				actor_type: "RepositoryRole",
+				bypass_mode: "always",
+			},
+		],
+		rules: [
+			{ type: "creation" },
+			{ type: "deletion" },
+			{ type: "non_fast_forward" },
+			{ type: "required_linear_history" },
+			{ type: "required_signatures" },
+			{ type: "update" },
+		],
+	});
 
 	const signedCommitsRule = { type: "required_signatures" } as const;
 	const prRule = {
@@ -113,7 +157,7 @@ async function updateRepositoryRules(
 		await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
 			owner,
 			repo,
-			ruleset_id: defaultBranchRuleId,
+			ruleset_id: await ensureRuleset("branch", "Default Branch Protection"),
 			enforcement: "active",
 			conditions: { ref_name: { exclude: [], include: ["~DEFAULT_BRANCH"] } },
 			bypass_actors: [
@@ -200,8 +244,8 @@ async function doRepo(
 		return;
 	}
 
-	await updateTagProtections(owner, repo);
 	await removeBranchProtections(owner, repo);
+	await removeTagProtections(owner, repo);
 
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
@@ -217,7 +261,7 @@ async function doRepo(
 	const relevantChecks = allChecks.filter((check) => isCheckWanted(check.name));
 	// logNonEmptyArray("relevant checks", relevantChecks);
 
-	await updateRepositoryRules(owner, repo, ghaPushesToDefault, relevantChecks);
+	await updateRulesets(owner, repo, ghaPushesToDefault, relevantChecks);
 
 	return allChecks.map((check) => check.name);
 }
