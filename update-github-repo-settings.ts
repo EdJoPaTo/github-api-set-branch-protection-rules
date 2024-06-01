@@ -31,22 +31,6 @@ const WANTED_STATICS = new Set([
 	"test", // Probably Deno
 ]);
 
-async function removeTagProtections(owner: string, repo: string) {
-	const { data } = await octokit.request(
-		"GET /repos/{owner}/{repo}/tags/protection",
-		{ owner, repo },
-	);
-	for (const rule of data) {
-		console.log("superfluousTagProtection", rule);
-		if (rule.id) {
-			await octokit.request(
-				"DELETE /repos/{owner}/{repo}/tags/protection/{tag_protection_id}",
-				{ owner, repo, tag_protection_id: rule.id },
-			);
-		}
-	}
-}
-
 async function removeBranchProtections(owner: string, repo: string) {
 	const branchesResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/branches",
@@ -245,7 +229,6 @@ async function doRepo(
 	}
 
 	await removeBranchProtections(owner, repo);
-	await removeTagProtections(owner, repo);
 
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
