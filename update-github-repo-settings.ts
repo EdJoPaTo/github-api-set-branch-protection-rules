@@ -224,10 +224,6 @@ async function doRepo(
 		},
 	);
 
-	if (privateRepo) {
-		return;
-	}
-
 	await removeBranchProtections(owner, repo);
 
 	const checksResponse = await octokit.request(
@@ -244,7 +240,9 @@ async function doRepo(
 	const relevantChecks = allChecks.filter((check) => isCheckWanted(check.name));
 	// logNonEmptyArray("relevant checks", relevantChecks);
 
-	await updateRulesets(owner, repo, ghaPushesToDefault, relevantChecks);
+	if (!privateRepo) {
+		await updateRulesets(owner, repo, ghaPushesToDefault, relevantChecks);
+	}
 
 	return allChecks.map((check) => check.name);
 }
