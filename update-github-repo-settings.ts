@@ -125,7 +125,6 @@ async function updateRulesets(
 		],
 	});
 
-	const signedCommitsRule = { type: "required_signatures" } as const;
 	const prRule = {
 		type: "pull_request",
 		parameters: {
@@ -171,7 +170,7 @@ async function updateRulesets(
 						})),
 					},
 				},
-				...(ghaPushesToDefault ? [] : [prRule, signedCommitsRule]),
+				...(ghaPushesToDefault ? [] : [prRule]),
 			],
 		});
 	} catch (err) {
