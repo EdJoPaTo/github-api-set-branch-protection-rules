@@ -102,11 +102,11 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 	if (data.is_template) {
 		folder = `template/${owner}`;
 	} else {
-		folder += owner;
-
 		if (data.archived) {
-			folder += "-archived";
+			folder += ".archived-";
 		}
+
+		folder += owner;
 
 		if (data.fork) {
 			folder += "-fork";
