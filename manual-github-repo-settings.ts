@@ -34,7 +34,7 @@ async function doRepo(owner: string, repo: string) {
 	);
 	const { workflow_runs } = runsReponse.data;
 	const nonFinished = workflow_runs
-		.filter((run) => run.status !== 'completed')
+		.filter((run) => run.status !== "completed")
 		.map((run) => ({
 			name: run.name,
 			status: run.status,
