@@ -50,6 +50,7 @@ async function updateLockfiles(dir: string) {
 
 		const process = new Deno.Command("bash", {
 			args: ["-c", "set -x && " + command],
+			clearEnv: true,
 			cwd: dir,
 		}).spawn();
 		const status = await process.status;
