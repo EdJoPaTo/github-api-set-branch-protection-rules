@@ -7,10 +7,10 @@ import {
 import { exec } from "./lib/local.ts";
 
 const COMMANDS: Readonly<Record<string, string>> = {
-	"Cargo.lock": "cargo update",
+	"Cargo.lock": "cargo update --quiet",
 	"deno.lock": "rm -f deno.lock && fd --extension ts --exec-batch deno cache",
 	"package-lock.json":
-		"rm -f package-lock.json && nice npm install --no-fund --package-lock-only",
+		"rm -f package-lock.json && nice npm install --no-audit --no-fund --package-lock-only",
 };
 const LOCKFILES: ReadonlySet<string> = new Set(Object.keys(COMMANDS));
 
