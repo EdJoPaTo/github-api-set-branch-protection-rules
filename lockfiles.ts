@@ -31,6 +31,16 @@ async function updateLockfiles(dir: string) {
 		return stdout;
 	}
 
+	function willPushBeRelevant() {
+		const diff = new Deno.Command("git", {
+			args: ["diff", "--shortstat", "origin/lockfiles"],
+			cwd: dir,
+		}).outputSync();
+		if (!diff.success) return true;
+		const stdout = new TextDecoder().decode(diff.stdout);
+		return stdout.length > 0;
+	}
+
 	for (const [lockfile, command] of Object.entries(COMMANDS)) {
 		if (!existsSync(dir + "/" + lockfile, { isFile: true })) {
 			continue;
@@ -55,11 +65,7 @@ async function updateLockfiles(dir: string) {
 	const hasChanges = changesLines.length > 0;
 	console.log("hasChanges", hasChanges, changesLines);
 
-	if (hasChanges) {
-		await git("switch", "--quiet", "--force-create", "lockfiles");
-		await git("commit", "--all", "--message=build: update lockfiles");
-		await git("push", "--force", "origin", "lockfiles");
-	} else {
+	if (!hasChanges) {
 		// No changes -> delete branch and ignore when it doesnt exist
 		new Deno.Command("git", {
 			args: ["push", "origin", ":lockfiles"],
@@ -67,6 +73,16 @@ async function updateLockfiles(dir: string) {
 			stdout: "null",
 			stderr: "null",
 		}).outputSync();
+		return;
+	}
+
+	await git("switch", "--quiet", "--force-create", "lockfiles");
+	await git("commit", "--all", "--message=build: update lockfiles");
+
+	if (willPushBeRelevant()) {
+		await git("push", "--force-with-lease", "origin", "lockfiles");
+	} else {
+		console.log("lockfiles are already the same as origin/lockfiles");
 	}
 }
 
@@ -110,6 +126,7 @@ for (const repoInfo of repos) {
 			"git",
 			"clone",
 			"--depth=1",
+			"--no-single-branch",
 			repoInfo.ssh_url,
 			tmpdir,
 		);
