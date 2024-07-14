@@ -27,6 +27,21 @@ async function doRepo(owner: string, repo: string) {
 			html_url: o.html_url,
 		})),
 	);
+
+	const runsReponse = await octokit.request(
+		"GET /repos/{owner}/{repo}/actions/runs",
+		{ owner, repo, per_page: 100 },
+	);
+	const { workflow_runs } = runsReponse.data;
+	const nonFinished = workflow_runs
+		.filter((run) => run.status !== 'completed')
+		.map((run) => ({
+			name: run.name,
+			status: run.status,
+			run_started_at: run.run_started_at,
+			html_url: run.html_url,
+		}));
+	logNonEmptyArray("not completed workflow runs", nonFinished);
 }
 
 const repos = await searchGithubRepos([
