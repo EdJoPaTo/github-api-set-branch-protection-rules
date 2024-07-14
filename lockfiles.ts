@@ -4,7 +4,7 @@ import {
 	octokit,
 	searchGithubRepos,
 } from "./lib/github.ts";
-import { exec } from "./lib/local.ts";
+import { exec, HOME } from "./lib/local.ts";
 
 const COMMANDS: Readonly<Record<string, string>> = {
 	"Cargo.lock": "cargo update --quiet",
@@ -49,9 +49,10 @@ async function updateLockfiles(dir: string) {
 		console.log("run update command for", lockfile, "...");
 
 		const process = new Deno.Command("nice", {
-			args: ["bash", "-c", "set -x && " + command],
+			args: ["bash", "-rlc", "set -x && " + command],
 			clearEnv: true,
 			cwd: dir,
+			env: { HOME },
 		}).spawn();
 		const status = await process.status;
 		if (!status.success) {
