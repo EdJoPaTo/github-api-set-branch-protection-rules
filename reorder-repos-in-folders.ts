@@ -1,10 +1,21 @@
 import { existsSync } from "node:fs";
-import { octokit } from "./lib/github.ts";
+import {
+	MY_REPOS_SEARCH_PARAMS,
+	octokit,
+	searchGithubRepos,
+} from "./lib/github.ts";
 import {
 	getExpectedLocalPathOfRepo,
 	getLocalRepos,
 	HOME,
 } from "./lib/local.ts";
+
+console.time("getRemoteRepos");
+const remoteRepos = await searchGithubRepos([
+	"fork:true",
+	...MY_REPOS_SEARCH_PARAMS,
+].join(" "));
+console.timeEnd("getRemoteRepos");
 
 console.time("getLocalRepos");
 const localRepos = await getLocalRepos();
@@ -12,12 +23,30 @@ console.timeEnd("getLocalRepos");
 
 for (const entry of localRepos) {
 	try {
-		const response = await octokit.request("GET /repos/{owner}/{repo}", {
-			owner: entry.user,
-			repo: entry.repo,
-		});
+		let fullPath: string;
 
-		const fullPath = getExpectedLocalPathOfRepo(response.data);
+		const remoteRepoInfo = remoteRepos
+			.find((r) => entry.url === r.ssh_url || entry.url === r.clone_url);
+		if (remoteRepoInfo) {
+			fullPath = getExpectedLocalPathOfRepo(remoteRepoInfo);
+		} else {
+			const { data: repoInfo } = await octokit.request(
+				"GET /repos/{owner}/{repo}",
+				{
+					owner: entry.user,
+					repo: entry.repo,
+				},
+			);
+
+			if (entry.url !== repoInfo.ssh_url) {
+				console.log(
+					"not in search result, remote is",
+					repoInfo.ssh_url,
+				);
+			}
+
+			fullPath = getExpectedLocalPathOfRepo(repoInfo);
+		}
 
 		if (entry.path === fullPath) {
 			console.log("correct", fullPath.replace(HOME, "~"));

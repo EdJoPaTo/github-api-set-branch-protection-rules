@@ -19,6 +19,13 @@ export type LocalGithubRepoInfo = {
 	readonly path: string;
 	readonly user: string;
 	readonly repo: string;
+	readonly url: string;
+};
+
+type LocalGithubRemote = {
+	readonly user: string;
+	readonly repo: string;
+	readonly url: string;
 };
 
 export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
@@ -41,10 +48,9 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
 		.map((o) => o.replace(/\/.git\/?$/, ""))
 		.sort();
 	for (const path of paths) {
+		const remotes: Record<string, LocalGithubRemote> = {};
+
 		const gitOutput = await exec("git", "-C", path, "remote", "--verbose");
-
-		const remotes: Record<string, { user: string; repo: string }> = {};
-
 		const gitOutputLines = gitOutput.split("\n").filter((o) => o.trim() !== "");
 		for (const remoteLine of gitOutputLines) {
 			const remoteMatch = /(\w+)\t(\S+)/.exec(remoteLine);
@@ -70,7 +76,7 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
 				repo = repo.slice(0, -".git".length);
 			}
 
-			remotes[remote] = { user, repo };
+			remotes[remote] = { user, repo, url };
 		}
 
 		const relevant = remotes["upstream"] ?? remotes["origin"];
