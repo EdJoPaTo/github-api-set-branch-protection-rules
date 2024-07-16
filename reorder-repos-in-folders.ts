@@ -10,16 +10,13 @@ import {
 	HOME,
 } from "./lib/local.ts";
 
-console.time("getRemoteRepos");
-const remoteRepos = await searchGithubRepos([
-	"fork:true",
-	...MY_REPOS_SEARCH_PARAMS,
-].join(" "));
-console.timeEnd("getRemoteRepos");
-
-console.time("getLocalRepos");
-const localRepos = await getLocalRepos();
-console.timeEnd("getLocalRepos");
+const [localRepos, remoteRepos] = await Promise.all([
+	getLocalRepos(),
+	searchGithubRepos([
+		"fork:true",
+		...MY_REPOS_SEARCH_PARAMS,
+	].join(" ")),
+]);
 
 for (const entry of localRepos) {
 	try {
