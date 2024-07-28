@@ -46,7 +46,7 @@ for (const entry of localRepos) {
 		}
 
 		if (entry.path === fullPath) {
-			console.log("correct", fullPath.replace(HOME, "~"));
+			// console.log("correct", fullPath.replace(HOME, "~"));
 		} else if (existsSync(fullPath)) {
 			console.log(
 				"duplica",
