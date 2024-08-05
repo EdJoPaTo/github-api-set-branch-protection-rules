@@ -1,6 +1,5 @@
 {
 	// https://deno.land/manual/getting_started/configuration_file
-	"lock": false,
 	"tasks": {},
 	// https://deno.land/manual/advanced/typescript/configuration
 	// https://www.typescriptlang.org/tsconfig/
