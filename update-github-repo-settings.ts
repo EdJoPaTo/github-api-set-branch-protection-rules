@@ -7,29 +7,31 @@ import {
 import { logArray } from "./lib/log.ts";
 
 function isCheckWanted(name: string): boolean {
-	if (name.includes(" beta") || name.includes(" nightly")) {
+	const lower = name.toLowerCase();
+	if (lower.includes("beta") || lower.includes("nightly")) {
 		return false;
 	}
-	return WANTED_STATICS.has(name) ||
-		name.startsWith("Clippy ") ||
-		name.startsWith("Features ") ||
-		name.startsWith("MSRV ") ||
-		name.startsWith("Node.js") ||
-		name.startsWith("Release ") ||
-		name.startsWith("Test ");
+	return WANTED_CHECKS
+		.some((wanted) => lower === wanted || lower.startsWith(wanted + " "));
 }
 
 // Do not add website-stalker. The git push doesnt work anymore then
-const WANTED_STATICS = new Set([
+const WANTED_CHECKS = [
 	"build", // Probably PlatformIO
 	"check",
+	"clippy",
 	"denofmt-and-lint",
 	"doc",
+	"features",
+	"lint",
+	"msrv",
+	"node.js",
 	"publish-dry-run",
-	"Run with example config", // website-stalker
+	"release",
+	"run with example config", // website-stalker
 	"rustfmt",
-	"test", // Probably Deno
-]);
+	"test",
+] as const satisfies string[];
 
 async function removeBranchProtections(owner: string, repo: string) {
 	const branchesResponse = await octokit.request(
@@ -266,9 +268,8 @@ for (const repo of repos) {
 
 console.log("\n\nall done");
 allChecks = allChecks.filter(arrayFilterUnique()).sort();
-const unusedWantedChecks = [...WANTED_STATICS].filter((o) =>
-	!allChecks.includes(o)
-);
+const unusedWantedChecks = [...WANTED_CHECKS]
+	.filter((o) => !allChecks.includes(o));
 const wantedChecks = allChecks.filter((o) => isCheckWanted(o));
 const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o));
 logArray("unused WANTED checks", unusedWantedChecks);
