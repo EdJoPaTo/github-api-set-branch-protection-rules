@@ -267,7 +267,9 @@ for (const repo of repos) {
 }
 
 console.log("\n\nall done");
-allChecks = allChecks.filter(arrayFilterUnique()).sort();
+allChecks = allChecks
+	.filter(arrayFilterUnique())
+	.sort((a, b) => a.localeCompare(b));
 const unusedWantedChecks = [...WANTED_CHECKS]
 	.filter((o) => !allChecks.includes(o));
 const wantedChecks = allChecks.filter((o) => isCheckWanted(o));
