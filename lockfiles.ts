@@ -8,7 +8,8 @@ import { exec, HOME } from "./lib/local.ts";
 
 const COMMANDS: Readonly<Record<string, string>> = {
 	"Cargo.lock": "cargo update --quiet",
-	"deno.lock": "rm -f deno.lock && fd --extension ts --exec-batch deno cache",
+	"deno.lock":
+		"rm -f deno.lock && fd --extension ts --exec-batch deno cache --reload",
 	"package-lock.json":
 		"rm -f package-lock.json && npm install --no-audit --no-fund --package-lock-only",
 };
