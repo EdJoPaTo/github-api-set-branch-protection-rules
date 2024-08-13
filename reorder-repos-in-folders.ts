@@ -5,9 +5,12 @@ import {
 	searchGithubRepos,
 } from "./lib/github.ts";
 import {
-	getExpectedLocalPathOfRepo,
+	getBaseDirForGitHost,
+	getExpectedDirectoryOfGitHubRepo,
 	getLocalRepos,
 	HOME,
+	type LocalRepo,
+	splitDir,
 } from "./lib/local.ts";
 
 const [localRepos, remoteRepos] = await Promise.all([
@@ -18,57 +21,71 @@ const [localRepos, remoteRepos] = await Promise.all([
 	].join(" ")),
 ]);
 
-for (const entry of localRepos) {
-	try {
-		let fullPath: string;
-
+async function getExpectedDirectory(localRepo: LocalRepo): Promise<string> {
+	if (localRepo.host === "github.com") {
+		const { remoteUrl } = localRepo;
 		const remoteRepoInfo = remoteRepos
-			.find((r) => entry.url === r.ssh_url || entry.url === r.clone_url);
+			.find((r) => remoteUrl === r.ssh_url || remoteUrl === r.clone_url);
 		if (remoteRepoInfo) {
-			fullPath = getExpectedLocalPathOfRepo(remoteRepoInfo);
+			return getExpectedDirectoryOfGitHubRepo(remoteRepoInfo);
 		} else {
+			const splitted = localRepo.path.split("/");
+			const owner = splitted[0]!;
+			const repo = splitted[1]!;
 			const { data: repoInfo } = await octokit.request(
 				"GET /repos/{owner}/{repo}",
-				{
-					owner: entry.user,
-					repo: entry.repo,
-				},
+				{ owner, repo },
 			);
 
-			if (entry.url !== repoInfo.ssh_url) {
+			if (remoteUrl !== repoInfo.ssh_url) {
 				console.log(
 					"not in search result, remote is",
 					repoInfo.ssh_url,
 				);
 			}
 
-			fullPath = getExpectedLocalPathOfRepo(repoInfo);
+			return getExpectedDirectoryOfGitHubRepo(repoInfo);
 		}
+	}
 
-		if (entry.path === fullPath) {
+	const baseDir = getBaseDirForGitHost(localRepo.host);
+
+	if (localRepo.host === "gist.github.com") {
+		const [_, localName] = splitDir(localRepo.dir);
+		return baseDir + "/" + localName;
+	}
+
+	return baseDir + "/" + localRepo.path;
+}
+
+for (const entry of localRepos) {
+	try {
+		const expectedDir = await getExpectedDirectory(entry);
+
+		if (entry.dir === expectedDir) {
 			// console.log("correct", fullPath.replace(HOME, "~"));
-		} else if (existsSync(fullPath)) {
+		} else if (existsSync(expectedDir)) {
 			console.log(
 				"duplica",
-				entry.path.replace(HOME, "~"),
+				entry.dir.replace(HOME, "~"),
 				"→",
-				fullPath.replace(HOME, "~"),
+				expectedDir.replace(HOME, "~"),
 			);
 		} else {
 			console.log(
 				"rename ",
-				entry.path.replace(HOME, "~"),
+				entry.dir.replace(HOME, "~"),
 				"→",
-				fullPath.replace(HOME, "~"),
+				expectedDir.replace(HOME, "~"),
 			);
-			const [parent] = splitDir(fullPath);
+			const [parent] = splitDir(expectedDir);
 			Deno.mkdirSync(parent, { recursive: true });
-			Deno.renameSync(entry.path, fullPath);
+			Deno.renameSync(entry.dir, expectedDir);
 		}
 	} catch (error) {
 		console.error(
 			"failed ",
-			entry.path.replace(HOME, "~"),
+			entry.dir.replace(HOME, "~"),
 			entry,
 			error instanceof Error ? error.message : error,
 		);

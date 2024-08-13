@@ -1,5 +1,5 @@
 import { MY_REPOS_SEARCH_PARAMS, searchGithubRepos } from "./lib/github.ts";
-import { exec, getExpectedLocalPathOfRepo, HOME } from "./lib/local.ts";
+import { exec, getExpectedDirectoryOfGitHubRepo, HOME } from "./lib/local.ts";
 
 async function getRepos() {
 	const repos = await searchGithubRepos([
@@ -13,7 +13,7 @@ async function getRepos() {
 const allRepos = await getRepos();
 const jobs = allRepos
 	.map((repo) => ({
-		localPath: getExpectedLocalPathOfRepo(repo),
+		localPath: getExpectedDirectoryOfGitHubRepo(repo),
 		repo,
 	}))
 	.sort((a, b) => a.localPath.localeCompare(b.localPath));

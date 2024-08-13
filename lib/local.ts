@@ -3,6 +3,18 @@ if (!HOME) {
 	throw new Error("Your shell should set your HOME directory as env");
 }
 
+const GIT_BASE_DIR = HOME + "/git";
+const KNOWN_HOST_DIRS: Readonly<Record<string, string>> = {
+	"aur.archlinux.org": "aur",
+	"codeberg.org": "codeberg",
+	"gist.github.com": "gist",
+	"github.com": "hub",
+};
+export function getBaseDirForGitHost(host: string): string {
+	const part = KNOWN_HOST_DIRS[host] ?? host;
+	return GIT_BASE_DIR + "/" + part;
+}
+
 export async function exec(cmd: string, ...args: string[]): Promise<string> {
 	const process = new Deno.Command(cmd, { args, stdout: "piped" }).spawn();
 	const status = await process.status;
@@ -23,42 +35,62 @@ export function splitDir(dir: string): [string, string] {
 	return [splitted.join("/"), last];
 }
 
-export type LocalGithubRepoInfo = {
+export type LocalRepo = {
+	readonly dir: string;
+	readonly remoteUrl: string;
+	readonly host: string;
 	readonly path: string;
-	readonly user: string;
-	readonly repo: string;
-	readonly url: string;
 };
 
-type LocalGithubRemote = {
-	readonly user: string;
-	readonly repo: string;
-	readonly url: string;
+type Remote = {
+	readonly remoteUrl: string;
+	readonly host: string;
+	readonly path: string;
 };
 
-export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
+function matchRemote(remoteUrl: string): Remote | undefined {
+	const sshMatch = /^git@([^:]+):(.+)$/.exec(remoteUrl);
+	if (sshMatch) {
+		const host = sshMatch[1]!;
+		const path = sshMatch[2]!.replace(/\.git$/, "");
+		return { remoteUrl, host, path };
+	}
+
+	const parsed = URL.parse(remoteUrl);
+	if (parsed) {
+		const { host, pathname } = parsed;
+		const path = pathname
+			.split("/")
+			.filter(Boolean)
+			.join("/")
+			.replace(/\.git$/, "");
+		return { remoteUrl, host, path };
+	}
+
+	return undefined;
+}
+
+export async function getLocalRepos(): Promise<LocalRepo[]> {
+	const list: LocalRepo[] = [];
+
 	const fdOutput = await exec(
 		"fd",
 		"--hidden",
 		"--no-ignore-vcs",
 		"--type=directory",
 		"^\\.git$",
-		HOME + "/git",
+		GIT_BASE_DIR,
 	);
-
-	const list: LocalGithubRepoInfo[] = [];
-	const skipped: string[] = [];
-
-	const paths = fdOutput
+	const directories = fdOutput
 		.split("\n")
 		.map((o) => o.trim())
 		.filter(Boolean)
 		.map((o) => o.replace(/\/.git\/?$/, ""))
 		.sort();
-	for (const path of paths) {
-		const remotes: Record<string, LocalGithubRemote> = {};
+	for (const dir of directories) {
+		const remotes: Record<string, Remote> = {};
 
-		const gitOutput = await exec("git", "-C", path, "remote", "--verbose");
+		const gitOutput = await exec("git", "-C", dir, "remote", "--verbose");
 		const gitOutputLines = gitOutput.split("\n").filter((o) => o.trim() !== "");
 		for (const remoteLine of gitOutputLines) {
 			const remoteMatch = /(\w+)\t(\S+)/.exec(remoteLine);
@@ -66,36 +98,31 @@ export async function getLocalRepos(): Promise<LocalGithubRepoInfo[]> {
 				throw new Error("unknown git remote line: " + remoteLine);
 			}
 
-			const remote = remoteMatch[1]!;
+			const name = remoteMatch[1]!;
 			const url = remoteMatch[2]!;
-			const urlMatch = /github\.com.([^/]+)\/(\S+)/.exec(url);
-			if (!urlMatch) {
+			const info = matchRemote(url);
+			if (!info) {
 				console.log(
-					"skip non github url",
-					path.replace(HOME, "~"),
+					"skip not parsable",
+					dir.replace(HOME, "~"),
 					remoteLine,
 				);
 				continue;
 			}
 
-			const user = urlMatch[1]!;
-			let repo = urlMatch[2]!;
-			if (repo.endsWith(".git")) {
-				repo = repo.slice(0, -".git".length);
-			}
-
-			remotes[remote] = { user, repo, url };
+			remotes[name] = info;
 		}
 
 		const relevant = remotes["upstream"] ?? remotes["origin"];
 		if (relevant) {
-			list.push({ path, ...relevant });
+			list.push({ dir, ...relevant });
+		} else if (Object.keys(remotes).length === 0) {
+			console.log("no remotes", dir);
 		} else {
-			skipped.push(path);
+			console.log("unknown remote names", dir);
 		}
 	}
 
-	console.log("skipped repos:", skipped.length, skipped);
 	return list;
 }
 
@@ -108,7 +135,7 @@ export type GithubRepoInfo = {
 	readonly private: boolean;
 };
 
-export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
+export function getExpectedDirectoryOfGitHubRepo(data: GithubRepoInfo): string {
 	const owner = data.owner?.login ?? "other";
 
 	let folder = "";
@@ -131,5 +158,6 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 	}
 
 	const repoFolderName = data.name;
-	return `${HOME}/git/hub/${folder}/${repoFolderName}`;
+	const baseDir = getBaseDirForGitHost("github.com");
+	return `${baseDir}/${folder}/${repoFolderName}`;
 }
