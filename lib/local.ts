@@ -15,6 +15,14 @@ export async function exec(cmd: string, ...args: string[]): Promise<string> {
 	return output;
 }
 
+/// Split directory into parent folder and folder name
+export function splitDir(dir: string): [string, string] {
+	const splitted = dir.split("/");
+	const last = splitted.pop();
+	if (!last) throw new Error("splitDir input fishy: " + dir);
+	return [splitted.join("/"), last];
+}
+
 export type LocalGithubRepoInfo = {
 	readonly path: string;
 	readonly user: string;
@@ -123,10 +131,5 @@ export function getExpectedLocalPathOfRepo(data: GithubRepoInfo): string {
 	}
 
 	const repoFolderName = data.name;
-
-	const containingFolder = `${HOME}/git/hub/${folder}`;
-	Deno.mkdirSync(containingFolder, { recursive: true });
-
-	const fullPath = containingFolder + "/" + repoFolderName;
-	return fullPath;
+	return `${HOME}/git/hub/${folder}/${repoFolderName}`;
 }
