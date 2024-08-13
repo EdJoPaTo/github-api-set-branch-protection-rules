@@ -31,9 +31,9 @@ export async function searchGithubRepos(
 			page,
 			q: query,
 		});
-		const { items } = response.data;
+		const { items, total_count } = response.data;
 		repos.push(...items);
-		if (items.length < 100) {
+		if (items.length < 100 || repos.length >= total_count) {
 			break;
 		}
 	}
