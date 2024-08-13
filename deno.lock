@@ -2,7 +2,7 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "jsr:@edjopato/array-filter-unique@^3": "jsr:@edjopato/array-filter-unique@3.1.0",
+      "jsr:@edjopato/array-filter-unique": "jsr:@edjopato/array-filter-unique@3.1.0",
       "jsr:@std/fs": "jsr:@std/fs@1.0.1",
       "jsr:@std/path@^1.0.2": "jsr:@std/path@1.0.2"
     },
@@ -22,8 +22,8 @@
     }
   },
   "redirects": {
-    "https://esm.sh/@octokit/core@6": "https://esm.sh/@octokit/core@6.1.2",
-    "https://esm.sh/@octokit/types@13": "https://esm.sh/@octokit/types@13.5.0"
+    "https://esm.sh/@octokit/core": "https://esm.sh/@octokit/core@6.1.2",
+    "https://esm.sh/@octokit/types": "https://esm.sh/@octokit/types@13.5.0"
   },
   "remote": {
     "https://esm.sh/@octokit/core@6.1.2": "263311f52fbd38cdf0aca84be5bb31fbb432998a0b5a33cb5c706f96e077b12a",
