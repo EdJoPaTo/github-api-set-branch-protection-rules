@@ -216,6 +216,10 @@ async function doRepo(
 	});
 
 	await octokit.request(
+		"PUT /repos/{owner}/{repo}/actions/permissions",
+		{ owner, repo, enabled: true, allowed_actions: "all" },
+	);
+	await octokit.request(
 		"PUT /repos/{owner}/{repo}/actions/permissions/workflow",
 		{
 			owner,
@@ -224,6 +228,12 @@ async function doRepo(
 			default_workflow_permissions: "read",
 		},
 	);
+	if (privateRepo) {
+		await octokit.request(
+			"PUT /repos/{owner}/{repo}/actions/permissions/access",
+			{ owner, repo, access_level: "none" },
+		);
+	}
 
 	await removeBranchProtections(owner, repo);
 
