@@ -4,7 +4,7 @@ import {
 	octokit,
 	searchGithubRepos,
 } from "./lib/github.ts";
-import { logArray } from "./lib/log.ts";
+import { logArray, logNonEmptyArray } from "./lib/log.ts";
 
 function isCheckWanted(name: string): boolean {
 	const lower = name.toLowerCase();
@@ -24,7 +24,6 @@ const WANTED_CHECKS = [
 	"doc",
 	"features",
 	"lint",
-	"msrv",
 	"node.js",
 	"publish-dry-run",
 	"release",
@@ -290,10 +289,11 @@ console.log("\n\nall done");
 allChecks = allChecks
 	.filter(arrayFilterUnique())
 	.sort((a, b) => a.localeCompare(b));
-const unusedWantedChecks = [...WANTED_CHECKS]
-	.filter((o) => !allChecks.includes(o));
+const unusedWantedChecks = [...WANTED_CHECKS].filter((wanted) =>
+	!allChecks.some((check) => check.toLowerCase().includes(wanted))
+);
 const wantedChecks = allChecks.filter((o) => isCheckWanted(o));
 const ignoredChecks = allChecks.filter((o) => !isCheckWanted(o));
-logArray("unused WANTED checks", unusedWantedChecks);
+logNonEmptyArray("unused WANTED_CHECKS", unusedWantedChecks);
 logArray("wanted checks", wantedChecks);
 logArray("ignored checks", ignoredChecks);
