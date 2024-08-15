@@ -8,14 +8,17 @@ import { logNonEmptyArray } from "./lib/log.ts";
 async function doRepo(owner: string, repo: string) {
 	console.log("\ndo repo", owner, repo);
 
-	const workflowsResponse = await octokit.request(
-		"GET /repos/{owner}/{repo}/actions/workflows",
-		{
-			owner,
-			repo,
-			per_page: 100,
-		},
-	);
+	const [workflowsResponse, runsReponse] = await Promise.all([
+		octokit.request(
+			"GET /repos/{owner}/{repo}/actions/workflows",
+			{ owner, repo, per_page: 100 },
+		),
+		octokit.request(
+			"GET /repos/{owner}/{repo}/actions/runs",
+			{ owner, repo, per_page: 100 },
+		),
+	]);
+
 	const { workflows } = workflowsResponse.data;
 	const nonActive = workflows.filter((o) => o.state !== "active");
 	logNonEmptyArray(
@@ -28,10 +31,6 @@ async function doRepo(owner: string, repo: string) {
 		})),
 	);
 
-	const runsReponse = await octokit.request(
-		"GET /repos/{owner}/{repo}/actions/runs",
-		{ owner, repo, per_page: 100 },
-	);
 	const { workflow_runs } = runsReponse.data;
 	const nonFinished = workflow_runs
 		.filter((run) => run.status !== "completed")

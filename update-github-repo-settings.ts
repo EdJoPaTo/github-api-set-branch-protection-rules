@@ -82,50 +82,52 @@ async function updateRulesets(
 		return id;
 	}
 
-	await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
-		owner,
-		repo,
-		ruleset_id: await ensureRuleset("tag", "Tags except versions"),
-		enforcement: "active",
-		conditions: {
-			ref_name: { include: ["~ALL"], exclude: ["refs/tags/v*.*.*"] },
-		},
-		rules: [
-			{ type: "creation" },
-			{ type: "deletion" },
-			{ type: "non_fast_forward" },
-			{ type: "required_linear_history" },
-			{ type: "required_signatures" },
-			{ type: "update" },
-		],
-	});
-	await octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
-		owner,
-		repo,
-		ruleset_id: await ensureRuleset("tag", "Version Tags"),
-		enforcement: "active",
-		conditions: { ref_name: { include: ["refs/tags/v*.*.*"], exclude: [] } },
-		bypass_actors: [
-			{
-				actor_id: 1,
-				actor_type: "OrganizationAdmin",
-				bypass_mode: "always",
+	await Promise.all([
+		octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
+			owner,
+			repo,
+			ruleset_id: await ensureRuleset("tag", "Tags except versions"),
+			enforcement: "active",
+			conditions: {
+				ref_name: { include: ["~ALL"], exclude: ["refs/tags/v*.*.*"] },
 			},
-			{
-				actor_id: 5, // Repository Admin
-				actor_type: "RepositoryRole",
-				bypass_mode: "always",
-			},
-		],
-		rules: [
-			{ type: "creation" },
-			{ type: "deletion" },
-			{ type: "non_fast_forward" },
-			{ type: "required_linear_history" },
-			{ type: "required_signatures" },
-			{ type: "update" },
-		],
-	});
+			rules: [
+				{ type: "creation" },
+				{ type: "deletion" },
+				{ type: "non_fast_forward" },
+				{ type: "required_linear_history" },
+				{ type: "required_signatures" },
+				{ type: "update" },
+			],
+		}),
+		octokit.request("PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}", {
+			owner,
+			repo,
+			ruleset_id: await ensureRuleset("tag", "Version Tags"),
+			enforcement: "active",
+			conditions: { ref_name: { include: ["refs/tags/v*.*.*"], exclude: [] } },
+			bypass_actors: [
+				{
+					actor_id: 1,
+					actor_type: "OrganizationAdmin",
+					bypass_mode: "always",
+				},
+				{
+					actor_id: 5, // Repository Admin
+					actor_type: "RepositoryRole",
+					bypass_mode: "always",
+				},
+			],
+			rules: [
+				{ type: "creation" },
+				{ type: "deletion" },
+				{ type: "non_fast_forward" },
+				{ type: "required_linear_history" },
+				{ type: "required_signatures" },
+				{ type: "update" },
+			],
+		}),
+	]);
 
 	const prRule = {
 		type: "pull_request",
@@ -191,34 +193,39 @@ async function doRepo(
 ) {
 	console.log("\ndo repo", owner, repo);
 
-	await octokit.request(
-		"PUT /repos/{owner}/{repo}/subscription",
-		{ owner, repo, subscribed: true },
-	);
+	await Promise.all([
+		removeBranchProtections(owner, repo),
 
-	await octokit.request("PATCH /repos/{owner}/{repo}", {
-		owner,
-		repo,
-		allow_auto_merge: true,
-		allow_merge_commit: false,
-		allow_rebase_merge: false,
-		allow_squash_merge: true,
-		allow_update_branch: true,
-		delete_branch_on_merge: true,
-		has_wiki: false,
-		web_commit_signoff_required: true,
-		security_and_analysis: {
-			// @ts-expect-error type not yet known
-			dependabot_security_updates: { status: "disabled" },
-			secret_scanning: privateRepo ? undefined : { status: "enabled" },
-			secret_scanning_push_protection: { status: "enabled" },
-		},
-	});
+		octokit.request(
+			"PUT /repos/{owner}/{repo}/subscription",
+			{ owner, repo, subscribed: true },
+		),
 
-	await octokit.request(
-		"PUT /repos/{owner}/{repo}/actions/permissions",
-		{ owner, repo, enabled: true, allowed_actions: "all" },
-	);
+		octokit.request("PATCH /repos/{owner}/{repo}", {
+			owner,
+			repo,
+			allow_auto_merge: true,
+			allow_merge_commit: false,
+			allow_rebase_merge: false,
+			allow_squash_merge: true,
+			allow_update_branch: true,
+			delete_branch_on_merge: true,
+			has_wiki: false,
+			web_commit_signoff_required: true,
+			security_and_analysis: {
+				// @ts-expect-error type not yet known
+				dependabot_security_updates: { status: "disabled" },
+				secret_scanning: privateRepo ? undefined : { status: "enabled" },
+				secret_scanning_push_protection: { status: "enabled" },
+			},
+		}),
+
+		octokit.request(
+			"PUT /repos/{owner}/{repo}/actions/permissions",
+			{ owner, repo, enabled: true, allowed_actions: "all" },
+		),
+	]);
+
 	await octokit.request(
 		"PUT /repos/{owner}/{repo}/actions/permissions/workflow",
 		{
@@ -235,8 +242,6 @@ async function doRepo(
 		);
 	}
 
-	await removeBranchProtections(owner, repo);
-
 	const checksResponse = await octokit.request(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
 		{ owner, repo, ref: defaultBranch },
@@ -250,6 +255,11 @@ async function doRepo(
 		.some((check) => check.name === "website-stalker");
 	const relevantChecks = allChecks.filter((check) => isCheckWanted(check.name));
 	// logNonEmptyArray("relevant checks", relevantChecks);
+
+	console.log(
+		"ratelimit-remaining",
+		checksResponse.headers["x-ratelimit-remaining"],
+	);
 
 	if (!privateRepo) {
 		await updateRulesets(owner, repo, ghaPushesToDefault, relevantChecks);
