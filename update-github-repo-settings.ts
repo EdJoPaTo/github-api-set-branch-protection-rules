@@ -51,6 +51,7 @@ async function removeBranchProtections(owner: string, repo: string) {
 async function updateRulesets(
 	owner: string,
 	repo: string,
+	noChecks: boolean,
 	ghaPushesToDefault: boolean,
 	relevantChecks: ReadonlyArray<Readonly<{ name: string; appId?: number }>>,
 ) {
@@ -173,7 +174,7 @@ async function updateRulesets(
 						})),
 					},
 				},
-				...(ghaPushesToDefault ? [] : [prRule]),
+				...(ghaPushesToDefault || noChecks ? [] : [prRule]),
 			],
 		});
 	} catch (err) {
@@ -245,6 +246,11 @@ async function doRepo(
 		"GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
 		{ owner, repo, ref: defaultBranch },
 	);
+	const noChecks = checksResponse.data.total_count === 0;
+	if (noChecks) {
+		console.log("Last commit doesnt have checks. Pushed by GitHub Actions?");
+	}
+
 	const allChecks = checksResponse.data.check_runs
 		.filter((check) => check.app?.id !== 29110) // Dependabot
 		.map((check) => ({ appId: check.app?.id, name: check.name }))
@@ -261,7 +267,13 @@ async function doRepo(
 	);
 
 	if (!privateRepo) {
-		await updateRulesets(owner, repo, ghaPushesToDefault, relevantChecks);
+		await updateRulesets(
+			owner,
+			repo,
+			noChecks,
+			ghaPushesToDefault,
+			relevantChecks,
+		);
 	}
 
 	return allChecks.map((check) => check.name);
