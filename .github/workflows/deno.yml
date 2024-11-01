@@ -3,6 +3,7 @@ name: Deno
 on:
   push:
   pull_request:
+  workflow_dispatch:
   schedule:
     # Check if it works with current versions
     - cron: "42 2 * * 6" # weekly on Saturday 2:42 UTC
@@ -10,6 +11,7 @@ on:
 jobs:
   denofmt-and-lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: denoland/setup-deno@v2
         with:
@@ -19,8 +21,9 @@ jobs:
       - run: deno lint
       - run: deno fmt --check
 
-  test:
+  check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: denoland/setup-deno@v2
         with:
@@ -29,4 +32,3 @@ jobs:
 
       - run: deno cache *.ts
       - run: deno check *.ts
-      # - run: deno test
