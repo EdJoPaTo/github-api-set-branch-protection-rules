@@ -50,7 +50,7 @@ async function updateLockfiles(dir: string) {
 
 		console.log("run update command for", lockfile, "...");
 
-		const process = new Deno.Command("nice", {
+		const process = new Deno.Command("/usr/bin/nice", {
 			args: ["bash", "-rlc", "set -x && " + command],
 			clearEnv: true,
 			cwd: dir,
