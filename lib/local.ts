@@ -74,18 +74,17 @@ export async function getLocalRepos(): Promise<LocalRepo[]> {
 	const list: LocalRepo[] = [];
 
 	const fdOutput = await exec(
-		"fd",
+		"project-below",
 		"--hidden",
-		"--no-ignore-vcs",
-		"--type=directory",
-		"^\\.git$",
-		GIT_BASE_DIR,
+		"--directory=.git",
+		"--base-dir=" + GIT_BASE_DIR,
+		"--canonical",
+		"--print0",
 	);
 	const directories = fdOutput
-		.split("\n")
+		.split("\0")
 		.map((o) => o.trim())
 		.filter(Boolean)
-		.map((o) => o.replace(/\/.git\/?$/, ""))
 		.sort();
 	for (const dir of directories) {
 		const remotes: Record<string, Remote> = {};
