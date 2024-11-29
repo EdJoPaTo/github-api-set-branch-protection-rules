@@ -12,7 +12,7 @@ const COMMANDS: Readonly<Record<string, string>> = {
 	"deno.lock":
 		"rm -f deno.lock && fd --extension ts --exec-batch deno cache --reload",
 	"package-lock.json":
-		"rm -f package-lock.json && npm install --no-audit --no-fund --package-lock-only",
+		"rm -f package-lock.json && npm install --no-audit --no-fund --no-update-notifier --package-lock-only",
 };
 const LOCKFILES: ReadonlySet<string> = new Set(Object.keys(COMMANDS));
 
